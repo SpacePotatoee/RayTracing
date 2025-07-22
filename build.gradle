@@ -7,6 +7,7 @@ version = '1.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -15,6 +16,13 @@ dependencies {
 
     implementation platform("org.lwjgl:lwjgl-bom:$lwjglVersion")
 
+    //ImGUI
+    implementation "io.github.spair:imgui-java-app:$imgui_version"
+
+    //Joml
+    implementation "org.joml:joml:$jomlVersion"
+
+    //LWJGL
     implementation "org.lwjgl:lwjgl"
     implementation "org.lwjgl:lwjgl-assimp"
     implementation "org.lwjgl:lwjgl-bgfx"
