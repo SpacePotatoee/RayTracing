@@ -13,6 +13,11 @@ public abstract class SceneObject {
     public SceneObject(Vector3d position, boolean fixed) {
         this.fixed = fixed;
         this.position = position;
+        this.init();
     }
+
+    public abstract void init();
+
+    public abstract void render();
 
 }
