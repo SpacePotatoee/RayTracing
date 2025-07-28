@@ -7,6 +7,7 @@ import imgui.glfw.ImGuiImplGlfw;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
 
 public class Window {
     private static Window mainWindow;
@@ -16,6 +17,9 @@ public class Window {
     private long handle;
 
     private String glslVersion;
+
+    private int width;
+    private int height;
 
     public static Window getWindow() {
         if (mainWindow == null) {
@@ -71,6 +75,7 @@ public class Window {
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 3);
 
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
+        GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
 
         this.handle = GLFW.glfwCreateWindow(1920, 1080, "Sponge", 0L, 0L);
         if (this.handle == 0L) {
@@ -84,6 +89,21 @@ public class Window {
         GLFW.glfwShowWindow(this.handle);
 
         GL.createCapabilities();
+
+        GLFW.glfwSetWindowSizeCallback(this.handle, this::onWindowSizeChange);
+//        GLFW.glfwSetFramebufferSizeCallback(this.handle, this::onFramebufferSizeChange);
+    }
+
+    private void onWindowSizeChange(long handle, int width, int height) {
+        GL11.glViewport(0, 0, width, height);
+        this.width = width;
+        this.height = height;
+    }
+
+    private void onFramebufferSizeChange(long handle, int width, int height) {
+        System.out.println("WORKED");
+        this.width = width;
+        this.height = height;
     }
 
     private void initImGui() {

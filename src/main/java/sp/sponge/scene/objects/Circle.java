@@ -15,7 +15,6 @@ import java.util.logging.Logger;
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL20C.*;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
-import static org.lwjgl.opengl.GL33C.glVertexAttribDivisor;
 
 public class Circle extends SceneObject {
     private static final String vertexShaderSrc = ("#version 330 core\n" +
