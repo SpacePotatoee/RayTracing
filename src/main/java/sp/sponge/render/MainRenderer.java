@@ -1,28 +1,33 @@
 package sp.sponge.render;
 
 import imgui.ImGui;
+import imgui.type.ImDouble;
 import org.lwjgl.opengl.GL11;
-import sp.sponge.scene.objects.Circle;
+import sp.sponge.render.imgui.AddObject;
+import sp.sponge.scene.SceneManager;
+import sp.sponge.scene.objects.SceneObject;
+
+import java.util.Vector;
 
 public class MainRenderer {
     private long updateTime;
     private int fpsCounter = 0;
     private String currentFpsString = "";
-    Circle circle;
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
     }
 
     public void renderScene() {
-//        GL11.glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
-        if (circle == null) {
-            circle = new Circle(0, 0, 0, false);
+        Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
+
+        for (SceneObject object : SceneManager.getSceneObjects()) {
+            object.render();
         }
 
-        circle.render();
+
     }
 
     public void renderImGui() {
@@ -35,6 +40,8 @@ public class MainRenderer {
         }
 
         ImGui.text(this.currentFpsString);
+
+        AddObject.render();
     }
 
 }

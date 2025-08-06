@@ -1,6 +1,7 @@
 package sp.sponge.scene.objects;
 
 import org.joml.Vector3d;
+import sp.sponge.scene.registries.Registries;
 
 public abstract class SceneObject {
     protected boolean fixed;
@@ -16,8 +17,16 @@ public abstract class SceneObject {
         this.init();
     }
 
+    public boolean shouldUseResolution() {
+        return this instanceof ObjectWithResolution;
+    }
+
     public abstract void init();
 
     public abstract void render();
+
+//    public String toString() {
+//        return Registries.SceneObjectRegistry.
+//    }
 
 }

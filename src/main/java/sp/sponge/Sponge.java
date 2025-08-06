@@ -2,6 +2,8 @@ package sp.sponge;
 
 import sp.sponge.render.MainRenderer;
 import sp.sponge.render.Window;
+import sp.sponge.render.shader.ShaderRegistry;
+import sp.sponge.scene.objects.Objects;
 
 import java.util.logging.Logger;
 
@@ -15,6 +17,8 @@ public class Sponge {
 
         this.renderer = new MainRenderer();
         this.SPONGE_LOGGER = Logger.getLogger("sponge");
+        ShaderRegistry.registerShaders();
+        Objects.registerObjects();
     }
 
     public void mainLoop() {
