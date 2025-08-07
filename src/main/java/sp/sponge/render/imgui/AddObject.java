@@ -35,11 +35,14 @@ public class AddObject {
         }
 
         if (ImGui.collapsingHeader("Objects")) {
+            if (ImGui.button("Remove all objects")) {
+                SceneManager.clear();
+            }
             for (SceneObject object : SceneManager.getSceneObjects()) {
                 if(ImGui.treeNode(object.toString())) {
                     if (object instanceof ObjectWithResolution objectWithResolution) {
                         int[] test = new int[]{objectWithResolution.getResolution()};
-                        ImGui.sliderInt("Resolution", test, 4, 100);
+                        ImGui.sliderInt("Resolution", test, 4, 50);
                             objectWithResolution.setResolution(test[0]);
                     }
 

@@ -2,8 +2,6 @@ package sp.sponge.scene;
 
 import sp.sponge.scene.objects.SceneObject;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 public class SceneManager {
@@ -11,6 +9,10 @@ public class SceneManager {
 
     public static Vector<SceneObject> getSceneObjects() {
         return (Vector<SceneObject>) sceneObjects.clone();
+    }
+
+    public static void clear() {
+        sceneObjects.clear();
     }
 
     public static void addObject(SceneObject object) {

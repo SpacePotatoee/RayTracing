@@ -22,17 +22,20 @@ public class Circle extends SceneObject implements ObjectWithResolution {
         double radius = 0.5f;
 
         for (int i = 0; i < this.resolution; i++) {
-            double angle = Math.toRadians((360.0 / this.resolution) * i);
+            double angleFactor = 360.0 / this.resolution;
+
+            double angle = Math.toRadians(angleFactor * i);
             float offsetY = (float) (Math.sin(angle) * radius);
             float offsetX = (float) (Math.cos(angle) * radius);
 
-            double angle2 = Math.toRadians((360.0 / this.resolution) * (i + 1));
+            double angle2 = Math.toRadians(angleFactor * (i + 1));
             float offset2Y = (float) (Math.sin(angle2) * radius);
             float offset2X = (float) (Math.cos(angle2) * radius);
 
-            vertexBuffer.vertex(0.0f, 0.0f, 0.0f);
-            vertexBuffer.vertex(offsetX, offsetY, 0.0f);
-            vertexBuffer.vertex(offset2X, offset2Y, 0.0f);
+
+            vertexBuffer.vertex(0.0f, 0.0f, 0.0f).color(1.0f, 1.0f, 1.0f, 1.0f).next();
+            vertexBuffer.vertex(offsetX, offsetY, 0.0f).color(offsetX, offsetY, 1.0f, 1.0f).next();
+            vertexBuffer.vertex(offset2X, offset2Y, 0.0f).color(offset2X, offset2Y, 1.0f, 1.0f).next();
         }
 
     }

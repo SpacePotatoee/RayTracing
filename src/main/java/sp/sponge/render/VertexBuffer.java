@@ -27,6 +27,18 @@ public class VertexBuffer {
         this.buffer.putFloat(x);
         this.buffer.putFloat(y);
         this.buffer.putFloat(z);
+        return this;
+    }
+
+    public VertexBuffer color(float red, float green, float blue, float alpha) {
+        this.buffer.putFloat(red);
+        this.buffer.putFloat(green);
+        this.buffer.putFloat(blue);
+        this.buffer.putFloat(alpha);
+        return this;
+    }
+
+    public VertexBuffer next() {
         this.vertexCount++;
         return this;
     }
@@ -56,11 +68,15 @@ public class VertexBuffer {
     //Every object will have the vertex attributes of whatever is in here
     public void setupVertexStates() {
         GL20.glEnableVertexAttribArray(0);
-        GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 12, 0);
+        GL20.glEnableVertexAttribArray(1);
+
+        GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 28, 0);
+        GL30.glVertexAttribPointer(1, 4, GL11.GL_FLOAT, false, 28, Float.BYTES * 3);
     }
 
     public void disableVertexStates() {
         GL20.glDisableVertexAttribArray(0);
+        GL20.glDisableVertexAttribArray(1);
     }
 
     public static void unbind() {
