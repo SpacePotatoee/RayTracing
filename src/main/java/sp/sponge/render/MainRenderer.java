@@ -1,9 +1,10 @@
 package sp.sponge.render;
 
 import imgui.ImGui;
-import imgui.type.ImDouble;
 import org.lwjgl.opengl.GL11;
 import sp.sponge.render.imgui.AddObject;
+import sp.sponge.render.shader.ShaderProgram;
+import sp.sponge.render.shader.ShaderRegistry;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
 
@@ -13,9 +14,11 @@ public class MainRenderer {
     private long updateTime;
     private int fpsCounter = 0;
     private String currentFpsString = "";
+    private final VertexBuffer mainVertexBuffer;
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
+        this.mainVertexBuffer = new VertexBuffer(10000);
     }
 
     public void renderScene() {
@@ -23,9 +26,19 @@ public class MainRenderer {
 
         Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
 
-        for (SceneObject object : SceneManager.getSceneObjects()) {
-            object.render();
+
+        for (SceneObject object : sceneObjects) {
+            object.render(this.mainVertexBuffer);
         }
+
+        this.mainVertexBuffer.bind();
+        ShaderRegistry.defaultShader.bind();
+
+        this.mainVertexBuffer.drawElements();
+        this.mainVertexBuffer.end();
+
+        ShaderProgram.unbind();
+        VertexBuffer.unbind();
 
 
     }

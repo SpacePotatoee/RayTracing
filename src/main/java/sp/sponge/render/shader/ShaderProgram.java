@@ -7,9 +7,9 @@ import sp.sponge.Sponge;
 import java.util.logging.Logger;
 
 public class ShaderProgram {
-    private int vertexID;
-    private int fragmentID;
-    private int shaderProgram;
+    private final int vertexID;
+    private final int fragmentID;
+    private final int shaderProgram;
 
     public ShaderProgram(String vertexShaderSrc, String fragmentShaderSrc) {
         Logger logger = Sponge.getInstance().getLogger();
@@ -54,6 +54,10 @@ public class ShaderProgram {
 
     public void bind() {
         GL20C.glUseProgram(shaderProgram);
+    }
+
+    public static void unbind() {
+        GL20C.glUseProgram(0);
     }
 
 }

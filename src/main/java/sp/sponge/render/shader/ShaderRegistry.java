@@ -4,6 +4,7 @@ import sp.sponge.Sponge;
 
 public class ShaderRegistry {
 
+    //TODO: Make a file reader
     public static ShaderProgram defaultShader = new ShaderProgram(
             ("#version 330 core\n" +
             "\n" +

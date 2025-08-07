@@ -1,6 +1,7 @@
 package sp.sponge.scene.objects;
 
 import org.joml.Vector3d;
+import sp.sponge.render.VertexBuffer;
 import sp.sponge.scene.registries.Registries;
 
 public abstract class SceneObject {
@@ -14,16 +15,13 @@ public abstract class SceneObject {
     public SceneObject(Vector3d position, boolean fixed) {
         this.fixed = fixed;
         this.position = position;
-        this.init();
     }
 
     public boolean shouldUseResolution() {
         return this instanceof ObjectWithResolution;
     }
 
-    public abstract void init();
-
-    public abstract void render();
+    public abstract void render(VertexBuffer vertexBuffer);
 
 //    public String toString() {
 //        return Registries.SceneObjectRegistry.
