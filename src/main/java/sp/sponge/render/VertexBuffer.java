@@ -24,10 +24,10 @@ public class VertexBuffer {
         this.vertexBufferID = GL30.glGenBuffers();
     }
 
-    public VertexBuffer vertex(Vector3f position, float x, float y, float z) {
-        this.buffer.putFloat(x + position.x);
-        this.buffer.putFloat(y + position.y);
-        this.buffer.putFloat(z + position.z);
+    public VertexBuffer vertex(Vector3f offset, float x, float y, float z) {
+        this.buffer.putFloat(x + offset.x);
+        this.buffer.putFloat(y + offset.y);
+        this.buffer.putFloat(z + offset.z);
         return this;
     }
 

@@ -1,6 +1,7 @@
 package sp.sponge.scene.objects;
 
 import sp.sponge.Sponge;
+import sp.sponge.scene.objects.custom.Sphere;
 import sp.sponge.scene.objects.custom.Square;
 import sp.sponge.scene.objects.custom.Circle;
 import sp.sponge.scene.registries.Registries;
@@ -16,6 +17,11 @@ public class Objects {
     private static final ObjectType<SceneObject> CIRCLE = Registries.SceneObjectRegistry.register(
             Registries.SceneObjectRegistry,
             new ObjectType<>(Circle.class, "circle", Circle::new)
+    );
+
+    private static final ObjectType<SceneObject> SPHERE = Registries.SceneObjectRegistry.register(
+            Registries.SceneObjectRegistry,
+            new ObjectType<>(Sphere.class, "sphere", Sphere::new)
     );
 
     public static void registerObjects() {

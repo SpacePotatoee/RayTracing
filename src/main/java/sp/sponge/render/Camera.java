@@ -22,25 +22,26 @@ public class Camera {
     }
 
     public void updateCamera() {
+        float speed = 0.03f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {
-            this.position.addInternal(rotation.mul(0.01f));
+            this.position.addInternal(rotation.mul(speed));
         }
         if (Keybinds.BACKWARDS.isPressed()) {
-            this.position.subtractInternal(rotation.mul(0.01f));
+            this.position.subtractInternal(rotation.mul(speed));
         }
         if (Keybinds.LEFT.isPressed()) {
-            this.position.addInternal(rotation.rotateY((float) Math.toRadians(90)).mul(0.01f));
+            this.position.addInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
         }
         if (Keybinds.RIGHT.isPressed()) {
-            this.position.subtractInternal(rotation.rotateY((float) Math.toRadians(90)).mul(0.01f));
+            this.position.subtractInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
         }
 
         if (Keybinds.SPACE.isPressed()) {
-            this.position.y -= 0.01f;
+            this.position.y -= speed;
         }
         if (Keybinds.SHIFT.isPressed()) {
-            this.position.y += 0.01f;
+            this.position.y += speed;
         }
 
         Window window = Window.getWindow();
@@ -56,6 +57,8 @@ public class Camera {
             float pitch = (float) (input.mousePosY - height / 2) / height;
 
             rotationVector.x += pitch;
+            rotationVector.x = (float) Math.clamp(rotationVector.x, -Math.PI/2.0, Math.PI/2.0);
+
             rotationVector.y += yaw;
 
             input.lockCursor(window, width / 2, height / 2);
@@ -69,7 +72,7 @@ public class Camera {
         rotation.rotateX(-rotationVector.x);
         rotation.rotateY(-rotationVector.y);
         rotation.normalize();
-        return new Vec3f(rotation.x, 0.0f, rotation.z);
+        return new Vec3f(rotation.x, 0.0f, rotation.z).normalize();
     }
 
     public Vec3f getRotation() {
