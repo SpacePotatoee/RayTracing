@@ -1,7 +1,7 @@
 package sp.sponge.render.imgui;
 
 import imgui.ImGui;
-import org.joml.Vector3d;
+import org.joml.Vector3f;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.ObjectWithResolution;
 import sp.sponge.scene.objects.SceneObject;
@@ -28,7 +28,7 @@ public class AddObject {
             }
 
             if (ImGui.button("Add Object") && addedObject != null) {
-                SceneObject newObject = addedObject.create(new Vector3d(0, 0, 0), false);
+                SceneObject newObject = addedObject.create(new Vector3f(0, 0, 0), false);
 
                 SceneManager.addObject(newObject);
             }
@@ -40,6 +40,16 @@ public class AddObject {
             }
             for (SceneObject object : SceneManager.getSceneObjects()) {
                 if(ImGui.treeNode(object.toString())) {
+                    float[] positionX = new float[]{object.getX()};
+                    float[] positionY = new float[]{object.getY()};
+                    float[] positionZ = new float[]{object.getZ()};
+
+                    ImGui.dragFloat("X", positionX, 0.01f);
+                    ImGui.dragFloat("Y", positionY, 0.01f);
+                    ImGui.dragFloat("Z", positionZ, 0.01f);
+
+                    object.setPosition(new Vector3f(positionX[0], positionY[0], positionZ[0]));
+
                     if (object instanceof ObjectWithResolution objectWithResolution) {
                         int[] resolution = new int[]{objectWithResolution.getResolution()};
                         ImGui.sliderInt("Resolution", resolution, 4, 50);

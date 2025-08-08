@@ -110,6 +110,9 @@ dependencies {
     implementation "org.lwjgl:lwjgl-xxhash::$lwjglNatives"
     implementation "org.lwjgl:lwjgl-yoga::$lwjglNatives"
     implementation "org.lwjgl:lwjgl-zstd::$lwjglNatives"
+
+    //Fast Utils
+    implementation 'it.unimi.dsi:fastutil:8.2.1'
 }
 
 test {

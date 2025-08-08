@@ -1,16 +1,17 @@
 package sp.sponge.scene.objects.custom;
 
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import sp.sponge.render.VertexBuffer;
 import sp.sponge.scene.objects.SceneObject;
 
 public class Square extends SceneObject {
 
-    public Square(double x, double y, double z, boolean fixed) {
+    public Square(float x, float y, float z, boolean fixed) {
         super(x, y, z, fixed);
     }
 
-    public Square(Vector3d position, boolean fixed) {
+    public Square(Vector3f position, boolean fixed) {
         super(position, fixed);
     }
 
@@ -19,14 +20,12 @@ public class Square extends SceneObject {
         // 0 1 2
         // 0 2 3
 
-        vertexBuffer.vertex(0.5f, 0.5f, -0.5f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
-        vertexBuffer.vertex(-0.5f, 0.5f, -0.5f).color(1.0f, 0.0f, 0.0f, 1.0f).next();  // 1
-        vertexBuffer.vertex(-0.5f, -0.5f, -0.5f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
+        vertexBuffer.vertex(this.position, 0.5f, 0.5f, 0.0f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
+        vertexBuffer.vertex(this.position, -0.5f, 0.5f, 0.0f).color(1.0f, 0.0f, 0.0f, 1.0f).next();  // 1
+        vertexBuffer.vertex(this.position, -0.5f, -0.5f, 0.0f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
 
-        vertexBuffer.vertex(0.5f, 0.5f, -0.5f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
-        vertexBuffer.vertex(-0.5f, -0.5f, -0.5f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
-        vertexBuffer.vertex(0.5f, -0.5f, -0.5f).color(1.0f, 1.0f, 1.0f, 1.0f).next();  // 3
-
-//        vertexBuffer.indexBuffer(elementArray);
+        vertexBuffer.vertex(this.position, 0.5f, 0.5f, 0.0f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
+        vertexBuffer.vertex(this.position, -0.5f, -0.5f, 0.0f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
+        vertexBuffer.vertex(this.position, 0.5f, -0.5f, 0.0f).color(1.0f, 1.0f, 1.0f, 1.0f).next();  // 3
     }
 }

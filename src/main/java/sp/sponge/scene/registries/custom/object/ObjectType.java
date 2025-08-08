@@ -1,6 +1,6 @@
 package sp.sponge.scene.registries.custom.object;
 
-import org.joml.Vector3d;
+import org.joml.Vector3f;
 import sp.sponge.scene.objects.SceneObject;
 
 public class ObjectType<T extends SceneObject> {
@@ -16,11 +16,11 @@ public class ObjectType<T extends SceneObject> {
         return this.name;
     }
 
-    public T create(Vector3d position, boolean fixed) {
+    public T create(Vector3f position, boolean fixed) {
         return createObjectMethod.create(position, fixed);
     }
 
     public interface CreateObject<T extends SceneObject> {
-        T create(Vector3d position, boolean fixed);
+        T create(Vector3f position, boolean fixed);
     }
 }

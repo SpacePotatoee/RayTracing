@@ -8,6 +8,7 @@ import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
+import sp.sponge.input.Input;
 
 public class Window {
     private static Window mainWindow;
@@ -20,6 +21,8 @@ public class Window {
 
     private int width;
     private int height;
+
+    private Input input;
 
     public static Window getWindow() {
         if (mainWindow == null) {
@@ -92,6 +95,10 @@ public class Window {
         GLFW.glfwShowWindow(this.handle);
         GLFW.glfwSetWindowSizeCallback(this.handle, this::onWindowSizeChange);
 
+        this.input = new Input();
+        this.input.setup(this);
+
+
         //Open GL stuff
         GL.createCapabilities();
         OpenGLSystem.enableDepthTest();
@@ -107,6 +114,10 @@ public class Window {
         ImGui.createContext();
         implGlfw.init(this.handle, true);
         implGl3.init(glslVersion);
+    }
+
+    public Input getInput() {
+        return input;
     }
 
     public long getHandle() {

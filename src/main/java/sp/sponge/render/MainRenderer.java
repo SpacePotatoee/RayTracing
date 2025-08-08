@@ -25,7 +25,7 @@ public class MainRenderer {
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
-        this.mainVertexBuffer = new VertexBuffer(10000);
+        this.mainVertexBuffer = new VertexBuffer(100000);
         this.window = Window.getWindow();
         this.camera = new Camera();
     }
@@ -33,8 +33,9 @@ public class MainRenderer {
     public void renderScene() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
 
-        Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
+        camera.updateCamera();
 
+        Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
 
         for (SceneObject object : sceneObjects) {
             object.render(this.mainVertexBuffer);
@@ -44,8 +45,8 @@ public class MainRenderer {
         Matrix4f view = new Matrix4f().identity();
         Matrix4f proj = new Matrix4f();
 
-        view.translate(0.0f, 0.0f, -2.5f);
-        view.rotate(new Quaternionf().rotateXYZ((float) Math.toRadians(rotation),(float) Math.toRadians(rotation), (float) Math.toRadians(rotation)));
+        view.rotate(new Quaternionf().rotateXYZ(this.camera.getRotation().x, this.camera.getRotation().y, 0.0f));
+        view.translate(this.camera.getPosition());
         proj.setPerspective((float) Math.toRadians(this.camera.getFov()), (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
 
         rotation++;

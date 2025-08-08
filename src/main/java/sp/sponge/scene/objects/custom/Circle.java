@@ -1,6 +1,7 @@
 package sp.sponge.scene.objects.custom;
 
 import org.joml.Vector3d;
+import org.joml.Vector3f;
 import sp.sponge.render.VertexBuffer;
 import sp.sponge.scene.objects.ObjectWithResolution;
 import sp.sponge.scene.objects.SceneObject;
@@ -9,11 +10,11 @@ public class Circle extends SceneObject implements ObjectWithResolution {
     private int resolution = 12;
 
     //TODO: Make the positions of the shapes actually do something
-    public Circle(double x, double y, double z, boolean fixed) {
+    public Circle(float x, float y, float z, boolean fixed) {
         super(x, y, z, fixed);
     }
 
-    public Circle(Vector3d position, boolean fixed) {
+    public Circle(Vector3f position, boolean fixed) {
         super(position, fixed);
     }
 
@@ -25,17 +26,17 @@ public class Circle extends SceneObject implements ObjectWithResolution {
             double angleFactor = 360.0 / this.resolution;
 
             double angle = Math.toRadians(angleFactor * i);
-            float offsetY = (float) (Math.sin(angle) * radius);
-            float offsetX = (float) (Math.cos(angle) * radius);
+            float offsetY = (float) (Math.sin(angle) * radius + this.position.y);
+            float offsetX = (float) (Math.cos(angle) * radius + this.position.x);
 
             double angle2 = Math.toRadians(angleFactor * (i + 1));
-            float offset2Y = (float) (Math.sin(angle2) * radius);
-            float offset2X = (float) (Math.cos(angle2) * radius);
+            float offset2Y = (float) (Math.sin(angle2) * radius + this.position.y);
+            float offset2X = (float) (Math.cos(angle2) * radius + this.position.x);
 
 
-            vertexBuffer.vertex(0.0f, 0.0f, 0.0f).color(1.0f, 1.0f, 1.0f, 1.0f).next();
-            vertexBuffer.vertex(offsetX, offsetY, 0.0f).color(offsetX, offsetY, 1.0f, 1.0f).next();
-            vertexBuffer.vertex(offset2X, offset2Y, 0.0f).color(offset2X, offset2Y, 1.0f, 1.0f).next();
+            vertexBuffer.vertex(this.position.x, this.position.y, this.position.z).color(1.0f, 1.0f, 1.0f, 1.0f).next();
+            vertexBuffer.vertex(offsetX, offsetY, this.position.z).color(offsetX, offsetY, 1.0f, 1.0f).next();
+            vertexBuffer.vertex(offset2X, offset2Y, this.position.z).color(offset2X, offset2Y, 1.0f, 1.0f).next();
         }
 
     }

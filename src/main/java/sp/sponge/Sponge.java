@@ -1,5 +1,6 @@
 package sp.sponge;
 
+import sp.sponge.input.keybind.Keybinds;
 import sp.sponge.render.MainRenderer;
 import sp.sponge.render.Window;
 import sp.sponge.render.shader.ShaderRegistry;
@@ -19,6 +20,7 @@ public class Sponge {
         this.SPONGE_LOGGER = Logger.getLogger("sponge");
         ShaderRegistry.registerShaders();
         Objects.registerObjects();
+        Keybinds.registerKeybinds();
     }
 
     public void mainLoop() {

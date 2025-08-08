@@ -1,5 +1,6 @@
 package sp.sponge.render;
 
+import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL15;
@@ -21,6 +22,13 @@ public class VertexBuffer {
 
         this.vertexArrayID = GL30.glGenVertexArrays();
         this.vertexBufferID = GL30.glGenBuffers();
+    }
+
+    public VertexBuffer vertex(Vector3f position, float x, float y, float z) {
+        this.buffer.putFloat(x + position.x);
+        this.buffer.putFloat(y + position.y);
+        this.buffer.putFloat(z + position.z);
+        return this;
     }
 
     public VertexBuffer vertex(float x, float y, float z) {
