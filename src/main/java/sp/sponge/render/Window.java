@@ -77,7 +77,10 @@ public class Window {
         GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
         GLFW.glfwWindowHint(GLFW.GLFW_RESIZABLE, GLFW.GLFW_TRUE);
 
-        this.handle = GLFW.glfwCreateWindow(1920, 1080, "Sponge", 0L, 0L);
+        this.width = 1920;
+        this.height = 1080;
+        this.handle = GLFW.glfwCreateWindow(this.width, this.height, "Sponge", 0L, 0L);
+
         if (this.handle == 0L) {
             throw new IllegalStateException("Failed to create window");
         }
@@ -87,21 +90,15 @@ public class Window {
         // 1 -> Vsync On
         GLFW.glfwSwapInterval(1);
         GLFW.glfwShowWindow(this.handle);
-
-        GL.createCapabilities();
-
         GLFW.glfwSetWindowSizeCallback(this.handle, this::onWindowSizeChange);
-//        GLFW.glfwSetFramebufferSizeCallback(this.handle, this::onFramebufferSizeChange);
+
+        //Open GL stuff
+        GL.createCapabilities();
+        OpenGLSystem.enableDepthTest();
     }
 
     private void onWindowSizeChange(long handle, int width, int height) {
         GL11.glViewport(0, 0, width, height);
-        this.width = width;
-        this.height = height;
-    }
-
-    private void onFramebufferSizeChange(long handle, int width, int height) {
-        System.out.println("WORKED");
         this.width = width;
         this.height = height;
     }
