@@ -119,4 +119,12 @@ public class Window {
     public boolean isRunning() {
         return !GLFW.glfwWindowShouldClose(this.handle);
     }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
 }

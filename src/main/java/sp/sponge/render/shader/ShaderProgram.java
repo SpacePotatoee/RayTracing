@@ -1,9 +1,12 @@
 package sp.sponge.render.shader;
 
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import sp.sponge.Sponge;
 
+import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 
 public class ShaderProgram {
@@ -11,7 +14,15 @@ public class ShaderProgram {
     private final int fragmentID;
     private final int shaderProgram;
 
+    private Matrix4f model = new Matrix4f();
+    private Matrix4f view = new Matrix4f();
+    private Matrix4f proj = new Matrix4f();
+
+    private final FloatBuffer matrixArray;
+
     public ShaderProgram(String vertexShaderSrc, String fragmentShaderSrc) {
+        this.matrixArray = BufferUtils.createFloatBuffer(16);
+
         Logger logger = Sponge.getInstance().getLogger();
 
         //Initialize vertex shader
@@ -58,6 +69,33 @@ public class ShaderProgram {
 
     public static void unbind() {
         GL20C.glUseProgram(0);
+    }
+
+    public void setMatrices(Matrix4f model, Matrix4f view, Matrix4f proj) {
+        this.model = new Matrix4f(model);
+        this.view = new Matrix4f(view);
+        this.proj = new Matrix4f(proj);
+        this.uploadDefaultUniforms();
+    }
+
+    public void uploadDefaultUniforms() {
+        int modelLocation = GL20.glGetUniformLocation(shaderProgram, "model");
+//        int viewLocation = GL20.glGetUniformLocation(shaderProgram, "view");
+        int projLocation = GL20.glGetUniformLocation(shaderProgram, "proj");
+
+        float[] array = new float[16];
+
+//        matrixArray.clear();
+        this.proj.get(array);
+        GL20.glUniformMatrix4fv(projLocation, false, array);
+
+        this.model.mul(view).get(array);
+        GL20.glUniformMatrix4fv(modelLocation, false, array);
+
+//        this.view.get(array);
+//        GL20.glUniformMatrix4fv(viewLocation, false, array);
+
+
     }
 
 }

@@ -19,13 +19,13 @@ public class Square extends SceneObject {
         // 0 1 2
         // 0 2 3
 
-        vertexBuffer.vertex(0.5f, 0.5f, 0.0f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
-        vertexBuffer.vertex(-0.5f, 0.5f, 0.0f).color(1.0f, 0.0f, 0.0f, 1.0f).next();  // 1
-        vertexBuffer.vertex(-0.5f, -0.5f, 0.0f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
+        vertexBuffer.vertex(0.5f, 0.5f, -0.5f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
+        vertexBuffer.vertex(-0.5f, 0.5f, -0.5f).color(1.0f, 0.0f, 0.0f, 1.0f).next();  // 1
+        vertexBuffer.vertex(-0.5f, -0.5f, -0.5f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
 
-        vertexBuffer.vertex(0.5f, 0.5f, 0.0f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
-        vertexBuffer.vertex(-0.5f, -0.5f, 0.0f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
-        vertexBuffer.vertex(0.5f, -0.5f, 0.0f).color(1.0f, 1.0f, 1.0f, 1.0f).next();  // 3
+        vertexBuffer.vertex(0.5f, 0.5f, -0.5f).color(0.0f, 0.0f, 1.0f, 1.0f).next();   // 0
+        vertexBuffer.vertex(-0.5f, -0.5f, -0.5f).color(0.0f, 1.0f, 0.0f, 1.0f).next(); // 2
+        vertexBuffer.vertex(0.5f, -0.5f, -0.5f).color(1.0f, 1.0f, 1.0f, 1.0f).next();  // 3
 
 //        vertexBuffer.indexBuffer(elementArray);
     }

@@ -11,11 +11,14 @@ public class ShaderRegistry {
             "layout (location = 0) in vec3 Position;\n" +
             "layout (location = 1) in vec4 Color;\n" +
             "\n" +
+            "uniform mat4 model;\n" +
+            "uniform mat4 proj;\n" +
+            "\n" +
             "out vec4 color;\n" +
             "\n" +
             "void main() {\n" +
             "    color = Color;\n" +
-            "    gl_Position = vec4(Position, 1.0);\n" +
+            "    gl_Position = proj * model * vec4(Position, 1.0);\n" +
             "}"),
 
             ("#version 330 core\n" +

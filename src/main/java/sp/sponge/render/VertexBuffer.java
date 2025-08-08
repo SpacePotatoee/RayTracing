@@ -45,6 +45,7 @@ public class VertexBuffer {
 
     public void drawElements() {
         glDrawArrays(GL_TRIANGLES, 0, this.vertexCount);
+        this.end();
     }
 
     public void end() {

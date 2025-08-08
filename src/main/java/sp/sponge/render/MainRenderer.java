@@ -1,6 +1,8 @@
 package sp.sponge.render;
 
 import imgui.ImGui;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
 import sp.sponge.render.imgui.AddObject;
 import sp.sponge.render.shader.ShaderProgram;
@@ -15,10 +17,14 @@ public class MainRenderer {
     private int fpsCounter = 0;
     private String currentFpsString = "";
     private final VertexBuffer mainVertexBuffer;
+    private final Window window;
+
+    private float rotation;
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
         this.mainVertexBuffer = new VertexBuffer(10000);
+        this.window = Window.getWindow();
     }
 
     public void renderScene() {
@@ -31,11 +37,22 @@ public class MainRenderer {
             object.render(this.mainVertexBuffer);
         }
 
+        Matrix4f model = new Matrix4f().identity();
+        Matrix4f view = new Matrix4f().identity();
+        Matrix4f proj = new Matrix4f();
+
+//        proj.perspective((float) Math.toRadians(175.0), (float) window.getWidth() / window.getHeight(), 0.1f, 100.0f);
+        view.rotate(new Quaternionf().rotateXYZ((float) Math.toRadians(rotation),(float) Math.toRadians(rotation), (float) Math.toRadians(rotation)));
+//        view.translate(0.0f, 0.0f, 0.5f);
+        rotation++;
+
+
+
         this.mainVertexBuffer.bind();
         ShaderRegistry.defaultShader.bind();
+        ShaderRegistry.defaultShader.setMatrices(model, view, proj);
 
         this.mainVertexBuffer.drawElements();
-        this.mainVertexBuffer.end();
 
         ShaderProgram.unbind();
         VertexBuffer.unbind();
