@@ -11,6 +11,8 @@ import sp.sponge.render.shader.ShaderRegistry;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Vector;
 
 public class MainRenderer {
@@ -62,7 +64,23 @@ public class MainRenderer {
         ShaderProgram.unbind();
         VertexBuffer.unbind();
 
+        ShaderRegistry.shaders.forEach((shaderProgram, files) -> {
+            for (File file : files) {
+                if (file.lastModified() != shaderProgram.lastUpdateTime) {
+                    try {
+                        FileInputStream fileInputStream = new FileInputStream(files[0]);
+                        String vertexShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
 
+                        fileInputStream = new FileInputStream(files[1]);
+                        String fragmentShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
+                        shaderProgram.reCompile(vertexShaderText, fragmentShaderText);
+                        break;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
     }
 
     public void renderImGui() {

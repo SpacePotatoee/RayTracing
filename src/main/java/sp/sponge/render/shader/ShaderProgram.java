@@ -1,28 +1,29 @@
 package sp.sponge.render.shader;
 
 import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import sp.sponge.Sponge;
 
-import java.nio.FloatBuffer;
 import java.util.logging.Logger;
 
 public class ShaderProgram {
-    private final int vertexID;
-    private final int fragmentID;
-    private final int shaderProgram;
+    private int vertexID;
+    private int fragmentID;
+    private int shaderProgram;
+    public long lastUpdateTime;
 
     private Matrix4f model = new Matrix4f();
     private Matrix4f view = new Matrix4f();
     private Matrix4f proj = new Matrix4f();
 
-    private final FloatBuffer matrixArray;
+//    private final FloatBuffer matrixArray;
 
-    public ShaderProgram(String vertexShaderSrc, String fragmentShaderSrc) {
-        this.matrixArray = BufferUtils.createFloatBuffer(16);
+    public ShaderProgram() {
 
+    }
+
+    public void compile(String vertexShaderSrc, String fragmentShaderSrc) {
         Logger logger = Sponge.getInstance().getLogger();
 
         //Initialize vertex shader
@@ -61,6 +62,17 @@ public class ShaderProgram {
             logger.severe("ERROR compiling shader proram");
             logger.info(GL20.glGetProgramInfoLog(shaderProgram, len));
         }
+    }
+
+    public void reCompile(String vertexShaderSrc, String fragmentShaderSrc) {
+        GL20.glDetachShader(shaderProgram, vertexID);
+        GL20.glDetachShader(shaderProgram, fragmentID);
+
+        GL20.glDeleteShader(vertexID);
+        GL20.glDeleteShader(fragmentID);
+        GL20.glDeleteProgram(shaderProgram);
+
+        this.compile(vertexShaderSrc, fragmentShaderSrc);
     }
 
     public void bind() {

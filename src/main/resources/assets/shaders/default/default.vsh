@@ -1,4 +1,3 @@
-#type vertex
 #version 330 core
 
 layout (location = 0) in vec3 Position;
@@ -12,16 +11,4 @@ out vec4 color;
 void main() {
     color = Color;
     gl_Position = proj * model * vec4(Position, 1.0);
-}
-
-
-
-#type fragment
-#version 330 core
-
-in vec4 color;
-out vec4 fragColor;
-
-void main() {
-    fragColor = color;
 }
