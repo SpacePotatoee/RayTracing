@@ -22,7 +22,7 @@ public class Camera {
     }
 
     public void updateCamera() {
-        float speed = 0.03f;
+        float speed = 0.02f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {
             this.position.addInternal(rotation.mul(speed));

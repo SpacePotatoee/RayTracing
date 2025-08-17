@@ -46,6 +46,13 @@ public class VertexBuffer {
         return this;
     }
 
+    public VertexBuffer normal(float x, float y, float z) {
+        this.buffer.putFloat(x);
+        this.buffer.putFloat(y);
+        this.buffer.putFloat(z);
+        return this;
+    }
+
     public VertexBuffer next() {
         this.vertexCount++;
         return this;
@@ -78,14 +85,17 @@ public class VertexBuffer {
     public void setupVertexStates() {
         GL20.glEnableVertexAttribArray(0);
         GL20.glEnableVertexAttribArray(1);
+        GL20.glEnableVertexAttribArray(2);
 
-        GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 28, 0);
-        GL30.glVertexAttribPointer(1, 4, GL11.GL_FLOAT, false, 28, Float.BYTES * 3);
+        GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 40, 0);
+        GL30.glVertexAttribPointer(1, 4, GL11.GL_FLOAT, false, 40, Float.BYTES * 3);
+        GL30.glVertexAttribPointer(2, 3, GL11.GL_FLOAT, true, 40, Float.BYTES * 7);
     }
 
     public void disableVertexStates() {
         GL20.glDisableVertexAttribArray(0);
         GL20.glDisableVertexAttribArray(1);
+        GL20.glDisableVertexAttribArray(2);
     }
 
     public static void unbind() {

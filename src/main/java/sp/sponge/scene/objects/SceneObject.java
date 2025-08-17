@@ -1,11 +1,13 @@
 package sp.sponge.scene.objects;
 
 import org.joml.Vector3f;
+import sp.sponge.render.Mesh;
 import sp.sponge.render.VertexBuffer;
 
 public abstract class SceneObject {
     protected boolean fixed;
     protected Vector3f position;
+    private boolean dirty;
 
     public SceneObject(float x, float y, float z, boolean fixed) {
         this(new Vector3f(x, y, z), fixed);
@@ -40,10 +42,18 @@ public abstract class SceneObject {
         return this instanceof ObjectWithResolution;
     }
 
-    public abstract void render(VertexBuffer vertexBuffer);
+    public abstract Mesh getMesh();
 
-//    public String toString() {
-//        return Registries.SceneObjectRegistry.
-//    }
+    public void markDirty() {
+        this.dirty = true;
+    }
+
+    public void clean() {
+        this.dirty = false;
+    }
+
+    public boolean isDirty() {
+        return this.dirty;
+    }
 
 }

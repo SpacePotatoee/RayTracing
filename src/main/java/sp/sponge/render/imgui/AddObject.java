@@ -53,7 +53,10 @@ public class AddObject {
                     if (object instanceof ObjectWithResolution objectWithResolution) {
                         int[] resolution = new int[]{objectWithResolution.getResolution()};
                         ImGui.sliderInt("Resolution", resolution, 4, 50);
-                        objectWithResolution.setResolution(resolution[0]);
+                        if (resolution[0] != objectWithResolution.getResolution()) {
+                            objectWithResolution.setResolution(resolution[0]);
+                            object.markDirty();
+                        }
                     }
 
                     if(ImGui.button("Remove Object")) {

@@ -4,10 +4,17 @@ import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
 import sp.sponge.Sponge;
+import sp.sponge.resources.ResourceManager;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 public class ShaderProgram {
+    public static HashMap<ShaderProgram, File[]> shaders = new HashMap<>();
     private int vertexID;
     private int fragmentID;
     private int shaderProgram;
@@ -19,8 +26,23 @@ public class ShaderProgram {
 
 //    private final FloatBuffer matrixArray;
 
-    public ShaderProgram() {
+    public ShaderProgram(String path) {
+        Logger logger = Sponge.getInstance().getLogger();
+        File defaultVertexShader = ResourceManager.getAssetFile("shaders/" + path + ".vsh");
+        File defaultFragmentShader = ResourceManager.getAssetFile("shaders/" + path + ".fsh");
+        try {
+            FileInputStream fileInputStream = new FileInputStream(defaultVertexShader);
+            String vertexShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
 
+            fileInputStream = new FileInputStream(defaultFragmentShader);
+            String fragmentShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
+            this.compile(vertexShaderText, fragmentShaderText);
+        } catch (IOException e) {
+            logger.severe("Failed to read Shaders");
+            throw new RuntimeException(e);
+        }
+
+        shaders.put(this, new File[]{defaultVertexShader, defaultFragmentShader});
     }
 
     public void compile(String vertexShaderSrc, String fragmentShaderSrc) {

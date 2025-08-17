@@ -5,6 +5,7 @@ import imgui.flag.ImGuiTabBarFlags;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.lwjgl.opengl.GL11;
+import sp.sponge.Sponge;
 import sp.sponge.render.imgui.AddObject;
 import sp.sponge.render.shader.ShaderProgram;
 import sp.sponge.render.shader.ShaderRegistry;
@@ -23,11 +24,9 @@ public class MainRenderer {
     private final Window window;
     private final Camera camera;
 
-    private float rotation;
-
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
-        this.mainVertexBuffer = new VertexBuffer(100000);
+        this.mainVertexBuffer = new VertexBuffer(1000000000);
         this.window = Window.getWindow();
         this.camera = new Camera();
     }
@@ -40,7 +39,10 @@ public class MainRenderer {
         Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
 
         for (SceneObject object : sceneObjects) {
-            object.render(this.mainVertexBuffer);
+            Mesh mesh = object.getMesh();
+            if (mesh != null) {
+                mesh.drawMesh(this.mainVertexBuffer);
+            }
         }
 
         Matrix4f model = new Matrix4f().identity();
@@ -50,8 +52,6 @@ public class MainRenderer {
         view.rotate(new Quaternionf().rotateXYZ(this.camera.getRotation().x, this.camera.getRotation().y, 0.0f));
         view.translate(this.camera.getPosition());
         proj.setPerspective((float) Math.toRadians(this.camera.getFov()), (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
-
-        rotation++;
 
 
 
@@ -64,20 +64,24 @@ public class MainRenderer {
         ShaderProgram.unbind();
         VertexBuffer.unbind();
 
-        ShaderRegistry.shaders.forEach((shaderProgram, files) -> {
+        ShaderProgram.shaders.forEach((shaderProgram, files) -> {
+            long lastModified = -1L;
             for (File file : files) {
-                if (file.lastModified() != shaderProgram.lastUpdateTime) {
-                    try {
-                        FileInputStream fileInputStream = new FileInputStream(files[0]);
-                        String vertexShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
+                lastModified = Math.max(lastModified, file.lastModified());
+            }
 
-                        fileInputStream = new FileInputStream(files[1]);
-                        String fragmentShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
-                        shaderProgram.reCompile(vertexShaderText, fragmentShaderText);
-                        break;
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
+            if (lastModified != shaderProgram.lastUpdateTime) {
+                try {
+                    FileInputStream fileInputStream = new FileInputStream(files[0]);
+                    String vertexShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+                    fileInputStream = new FileInputStream(files[1]);
+                    String fragmentShaderText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
+                    shaderProgram.reCompile(vertexShaderText, fragmentShaderText);
+                    shaderProgram.lastUpdateTime = lastModified;
+                    Sponge.getInstance().getLogger().info("Hot-swapping shaders");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
         });
