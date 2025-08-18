@@ -37,7 +37,8 @@ public class MainRenderer {
         camera.updateCamera();
 
         Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
-
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_BACK);
         for (SceneObject object : sceneObjects) {
             Mesh mesh = object.getMesh();
             if (mesh != null) {

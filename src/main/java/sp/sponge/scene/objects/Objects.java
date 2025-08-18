@@ -2,6 +2,9 @@ package sp.sponge.scene.objects;
 
 import sp.sponge.Sponge;
 import sp.sponge.scene.objects.custom.*;
+import sp.sponge.scene.objects.custom.obj.Bunny;
+import sp.sponge.scene.objects.custom.obj.Cube;
+import sp.sponge.scene.objects.custom.obj.Dragon;
 import sp.sponge.scene.registries.Registries;
 import sp.sponge.scene.registries.custom.object.ObjectType;
 
@@ -30,6 +33,11 @@ public class Objects {
     private static final ObjectType<SceneObject> DRAGON = Registries.SceneObjectRegistry.register(
             Registries.SceneObjectRegistry,
             new ObjectType<>(Dragon.class, "dragon", Dragon::new)
+    );
+
+    private static final ObjectType<SceneObject> BUNNY = Registries.SceneObjectRegistry.register(
+            Registries.SceneObjectRegistry,
+            new ObjectType<>(Bunny.class, "bunny", Bunny::new)
     );
 
     public static void registerObjects() {

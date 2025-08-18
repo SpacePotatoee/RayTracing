@@ -8,17 +8,25 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
 public class ObjParser {
+    private static final HashMap<String, Mesh> cachedMeshes = new HashMap<>();
 
     public static Mesh objToMesh(String pathToObjFile) {
-        File objFile = ResourceManager.getAssetFile("models/" + pathToObjFile + ".obj");
+        String fullPath = "models/" + pathToObjFile + ".obj";
+
+        if (cachedMeshes.containsKey(fullPath)) {
+            return cachedMeshes.get(fullPath);
+        }
+
+        File objFile = ResourceManager.getAssetFile(fullPath);
         List<float[]> vertices = new ArrayList<>();
         List<float[]> normals = new ArrayList<>();
         List<Mesh.Face> faces = new ArrayList<>();
-
+        int totalFaces = 0;
         try {
             FileInputStream fileInputStream = new FileInputStream(objFile);
             String objectFileText = new String(fileInputStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -40,6 +48,8 @@ public class ObjParser {
 
                     normals.add(normalsArray);
 
+                } else if (line.startsWith("vt")) {
+                    
                 } else if (line.startsWith("v")) {
                     String[] strings = getData(line);
                     if (strings.length < 3) {
@@ -57,9 +67,7 @@ public class ObjParser {
                     String[][] strings = getFaceData(line);
 
                     Mesh.Vertex[] face = new Mesh.Vertex[3];
-//                    System.out.println(Arrays.deepToString(strings));
                     for (int i = 0; i < 3; i++) {
-//                        System.out.println(strings[i][0]);
                         float[] vertexPositions = vertices.get(parseInt(strings[i][0], vertices.size(), normals.size(), false) - 1);
                         float[] vertexNormals = normals.get(parseInt(strings[i][2], vertices.size(), normals.size(), true) - 1);
 
@@ -76,6 +84,7 @@ public class ObjParser {
                         face[i] = vertex;
                     }
                     faces.add(new Mesh.Face(face[0], face[1], face[2]));
+                    totalFaces++;
                 }
             }
 
@@ -84,7 +93,8 @@ public class ObjParser {
             for (Mesh.Face face : faces) {
                 mesh.addFace(face);
             }
-
+            cachedMeshes.put(fullPath, mesh);
+            System.out.println(totalFaces);
             return mesh;
 
         } catch (IOException e) {

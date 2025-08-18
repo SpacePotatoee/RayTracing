@@ -6,5 +6,5 @@ out vec4 fragColor;
 
 void main() {
     float lighting = dot(normal, normalize(vec3(0.5,0.7,1)));
-    fragColor =vec4(normal, 1.0);
+    fragColor = color * lighting;
 }
