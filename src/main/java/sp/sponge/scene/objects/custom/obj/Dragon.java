@@ -8,10 +8,10 @@ public class Dragon extends AbstractObjObject {
     private Mesh mesh;
 
     public Dragon(float x, float y, float z, boolean fixed) {
-        super(x, y, z, fixed, "dragon_8k");
+        super(x, y, z, fixed, "dragon_80k");
     }
 
     public Dragon(Vector3f position, boolean fixed) {
-        super(position, fixed, "dragon_8k");
+        super(position, fixed, "dragon_80k");
     }
 }

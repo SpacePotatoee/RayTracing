@@ -1,5 +1,6 @@
 package sp.sponge.render;
 
+import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -8,6 +9,7 @@ import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static org.lwjgl.opengl.GL11C.*;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
@@ -16,12 +18,14 @@ public class VertexBuffer {
     private final ByteBuffer buffer;
     private int vertexCount;
     private final int vertexArrayID, vertexBufferID;
+    private final VertexDataType vertexDataType;
 
-    public VertexBuffer(int capacity) {
+    public VertexBuffer(int capacity, VertexDataType vertexDataType) {
         this.buffer = BufferUtils.createByteBuffer(capacity);
 
         this.vertexArrayID = GL30.glGenVertexArrays();
         this.vertexBufferID = GL30.glGenBuffers();
+        this.vertexDataType = vertexDataType;
     }
 
     public VertexBuffer vertex(Vector3f offset, float x, float y, float z) {
@@ -39,6 +43,9 @@ public class VertexBuffer {
     }
 
     public VertexBuffer color(float red, float green, float blue, float alpha) {
+        if (!vertexDataType.contains(VertexData.COLOR)) {
+            throw new RuntimeException("Tried to add color data to a buffer that doesn't accept it!");
+        }
         this.buffer.putFloat(red);
         this.buffer.putFloat(green);
         this.buffer.putFloat(blue);
@@ -47,15 +54,26 @@ public class VertexBuffer {
     }
 
     public VertexBuffer normal(float x, float y, float z) {
+        if (!vertexDataType.contains(VertexData.NORMAL)) {
+            throw new RuntimeException("Tried to add normal data to a buffer that doesn't accept it!");
+        }
         this.buffer.putFloat(x);
         this.buffer.putFloat(y);
         this.buffer.putFloat(z);
         return this;
     }
 
-    public VertexBuffer next() {
-        this.vertexCount++;
+    public VertexBuffer texture(float x, float y) {
+        if (!vertexDataType.contains(VertexData.TEXTURE)) {
+            throw new RuntimeException("Tried to add texture data to a buffer that doesn't accept it!");
+        }
+        this.buffer.putFloat(x);
+        this.buffer.putFloat(y);
         return this;
+    }
+
+    public void next() {
+        this.vertexCount++;
     }
 
     public void drawElements() {
@@ -81,24 +99,90 @@ public class VertexBuffer {
         this.setupVertexStates();
     }
 
-    //Every object will have the vertex attributes of whatever is in here
     public void setupVertexStates() {
-        GL20.glEnableVertexAttribArray(0);
-        GL20.glEnableVertexAttribArray(1);
-        GL20.glEnableVertexAttribArray(2);
-
-        GL30.glVertexAttribPointer(0, 3, GL11.GL_FLOAT, false, 40, 0);
-        GL30.glVertexAttribPointer(1, 4, GL11.GL_FLOAT, false, 40, Float.BYTES * 3);
-        GL30.glVertexAttribPointer(2, 3, GL11.GL_FLOAT, true, 40, Float.BYTES * 7);
+        this.vertexDataType.setupVertexAttributes();
     }
 
     public void disableVertexStates() {
-        GL20.glDisableVertexAttribArray(0);
-        GL20.glDisableVertexAttribArray(1);
-        GL20.glDisableVertexAttribArray(2);
+        this.vertexDataType.disableVertexAttributes();
     }
 
     public static void unbind() {
         glBindVertexArray(0);
+    }
+
+
+
+    public enum VertexDataType {
+        POSITION_COLOR_NORMAL(VertexData.POSITION, VertexData.COLOR, VertexData.NORMAL),
+        POSITION_TEXTURE(VertexData.POSITION, VertexData.TEXTURE),
+        POSITION(VertexData.POSITION);
+
+        private final VertexData[] data;
+        private final Object2BooleanArrayMap<VertexData> containsMap = new Object2BooleanArrayMap<>();
+        private final int stride;
+
+        VertexDataType(VertexData... data) {
+            this.data = data;
+            int stride = 0;
+            for (VertexData vertexData : data) {
+                stride += vertexData.numOfBytes;
+            }
+            this.stride = stride;
+        }
+
+        public void setupVertexAttributes() {
+            int pointer = 0;
+            for (int i = 0; i < data.length; i++) {
+                VertexData vertexData = data[i];
+
+                GL20.glEnableVertexAttribArray(i);
+                GL30.glVertexAttribPointer(i, vertexData.size, vertexData.type, vertexData.normalized, this.stride, pointer);
+
+                pointer += vertexData.numOfBytes;
+            }
+        }
+
+        public void disableVertexAttributes() {
+            for (int i = 0; i < data.length; i++) {
+                GL20.glDisableVertexAttribArray(i);
+            }
+        }
+
+        public boolean contains(VertexData data) {
+            if (containsMap.containsKey(data)) {
+                return containsMap.getBoolean(data);
+            }
+
+            boolean contains = Arrays.asList(this.data).contains(data);
+            containsMap.put(data, contains);
+
+            return contains;
+        }
+    }
+
+    public enum VertexData {
+        POSITION(3, GL11.GL_FLOAT, false),
+        COLOR(4, GL11.GL_FLOAT, false),
+        NORMAL(3, GL11.GL_FLOAT, true),
+        TEXTURE(2, GL11.GL_FLOAT, false);
+
+
+        private final int size;
+        private final int type;
+        private final boolean normalized;
+        private int numOfBytes;
+
+        VertexData(int size, int type, boolean normalized) {
+            this.size = size;
+            this.type = type;
+            this.normalized = normalized;
+
+            switch (type) {
+                case GL11.GL_FLOAT -> this.numOfBytes = 4;
+            }
+
+            this.numOfBytes *= size;
+        }
     }
 }

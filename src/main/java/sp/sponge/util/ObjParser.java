@@ -1,5 +1,6 @@
 package sp.sponge.util;
 
+import sp.sponge.Sponge;
 import sp.sponge.render.Mesh;
 import sp.sponge.resources.ResourceManager;
 
@@ -18,8 +19,8 @@ public class ObjParser {
     public static Mesh objToMesh(String pathToObjFile) {
         String fullPath = "models/" + pathToObjFile + ".obj";
 
-        if (cachedMeshes.containsKey(fullPath)) {
-            return cachedMeshes.get(fullPath);
+        if (cachedMeshes.containsKey(pathToObjFile)) {
+            return cachedMeshes.get(pathToObjFile);
         }
 
         File objFile = ResourceManager.getAssetFile(fullPath);
@@ -93,8 +94,8 @@ public class ObjParser {
             for (Mesh.Face face : faces) {
                 mesh.addFace(face);
             }
-            cachedMeshes.put(fullPath, mesh);
-            System.out.println(totalFaces);
+            cachedMeshes.put(pathToObjFile, mesh);
+            Sponge.getInstance().getLogger().info("Generated " + totalFaces + " faces");
             return mesh;
 
         } catch (IOException e) {

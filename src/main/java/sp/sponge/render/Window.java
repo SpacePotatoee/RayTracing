@@ -101,7 +101,6 @@ public class Window {
 
         //Open GL stuff
         GL.createCapabilities();
-        OpenGLSystem.enableDepthTest();
     }
 
     private void onWindowSizeChange(long handle, int width, int height) {

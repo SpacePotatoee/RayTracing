@@ -19,9 +19,6 @@ public class Square extends SceneObject {
 
     @Override
     public Mesh getMesh() {
-        // 0 1 2
-        // 0 2 3
-
         if (mesh == null) {
             this.mesh = new Mesh(6, 2);
 

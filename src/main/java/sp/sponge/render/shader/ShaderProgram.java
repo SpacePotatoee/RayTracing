@@ -128,8 +128,12 @@ public class ShaderProgram {
 
 //        this.view.get(array);
 //        GL20.glUniformMatrix4fv(viewLocation, false, array);
+    }
 
+    public void bindTexture(String name, int texture) {
+        int textureLocation = GL20.glGetUniformLocation(shaderProgram, name);
 
+        GL20.glUniform1i(textureLocation, texture);
     }
 
 }

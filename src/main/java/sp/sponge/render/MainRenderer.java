@@ -23,12 +23,14 @@ public class MainRenderer {
     private final VertexBuffer mainVertexBuffer;
     private final Window window;
     private final Camera camera;
+    private final FrameBuffer postFramebuffer;
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
-        this.mainVertexBuffer = new VertexBuffer(1000000000);
+        this.mainVertexBuffer = new VertexBuffer(100000000, VertexBuffer.VertexDataType.POSITION_COLOR_NORMAL);
         this.window = Window.getWindow();
         this.camera = new Camera();
+        this.postFramebuffer = new FrameBuffer(this.window.getWidth(), this.window.getHeight());
     }
 
     public void renderScene() {
@@ -54,16 +56,24 @@ public class MainRenderer {
         view.translate(this.camera.getPosition());
         proj.setPerspective((float) Math.toRadians(this.camera.getFov()), (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
 
-
-
+        this.postFramebuffer.bind();
+        OpenGLSystem.enableDepthTest();
         this.mainVertexBuffer.bind();
         ShaderRegistry.defaultShader.bind();
         ShaderRegistry.defaultShader.setMatrices(model, view, proj);
 
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         this.mainVertexBuffer.drawElements();
+        FrameBuffer.unbind();
 
-        ShaderProgram.unbind();
-        VertexBuffer.unbind();
+//        ShaderProgram.unbind();
+//        VertexBuffer.unbind();
+
+
+        this.postFramebuffer.draw();
+
+
+
 
         ShaderProgram.shaders.forEach((shaderProgram, files) -> {
             long lastModified = -1L;
