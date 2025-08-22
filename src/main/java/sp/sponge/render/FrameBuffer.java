@@ -88,6 +88,10 @@ public class FrameBuffer {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.colorTexture);
         ShaderRegistry.postShader.bindTexture("DiffuseTextureSampler", 0);
 
+        GL13.glActiveTexture(GL13.GL_TEXTURE1);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.depthTexture);
+        ShaderRegistry.postShader.bindTexture("DiffuseDepthSampler", 1);
+
         this.screenBuffer.drawElements();
 
         ShaderProgram.unbind();

@@ -76,7 +76,6 @@ public class ObjParser {
                                 vertexPositions[0],
                                 vertexPositions[1],
                                 vertexPositions[2],
-                                1, 1, 1, 1,
                                 vertexNormals[0],
                                 vertexNormals[1],
                                 vertexNormals[2]

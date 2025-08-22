@@ -13,7 +13,7 @@ public class Camera {
 
     public Camera() {
         this.fov = 45;
-        this.position = new Vec3f();
+        this.position = new Vec3f(0,1, 0);
         this.rotationVector = new Vec3f(0, 0, 1);
     }
 
@@ -25,23 +25,23 @@ public class Camera {
         float speed = 0.02f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {
-            this.position.addInternal(rotation.mul(speed));
-        }
-        if (Keybinds.BACKWARDS.isPressed()) {
             this.position.subtractInternal(rotation.mul(speed));
         }
+        if (Keybinds.BACKWARDS.isPressed()) {
+            this.position.addInternal(rotation.mul(speed));
+        }
         if (Keybinds.LEFT.isPressed()) {
-            this.position.addInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
+            this.position.subtractInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
         }
         if (Keybinds.RIGHT.isPressed()) {
-            this.position.subtractInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
+            this.position.addInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
         }
 
         if (Keybinds.SPACE.isPressed()) {
-            this.position.y -= speed;
+            this.position.y += speed;
         }
         if (Keybinds.SHIFT.isPressed()) {
-            this.position.y += speed;
+            this.position.y -= speed;
         }
 
         Window window = Window.getWindow();

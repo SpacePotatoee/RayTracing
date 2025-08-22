@@ -4,6 +4,7 @@ import imgui.ImGui;
 import imgui.flag.ImGuiTabBarFlags;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.lwjgl.opengl.GL11;
 import sp.sponge.Sponge;
 import sp.sponge.render.imgui.AddObject;
@@ -11,6 +12,7 @@ import sp.sponge.render.shader.ShaderProgram;
 import sp.sponge.render.shader.ShaderRegistry;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
+import sp.sponge.scene.objects.custom.Square;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -25,6 +27,9 @@ public class MainRenderer {
     private final Camera camera;
     private final FrameBuffer postFramebuffer;
 
+//    private boolean initGroundPlane;
+    private Square groundPlane;
+
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
         this.mainVertexBuffer = new VertexBuffer(100000000, VertexBuffer.VertexDataType.POSITION_COLOR_NORMAL);
@@ -35,6 +40,8 @@ public class MainRenderer {
 
     public void renderScene() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+
+        this.updateGroundPlane();
 
         camera.updateCamera();
 
@@ -53,7 +60,7 @@ public class MainRenderer {
         Matrix4f proj = new Matrix4f();
 
         view.rotate(new Quaternionf().rotateXYZ(this.camera.getRotation().x, this.camera.getRotation().y, 0.0f));
-        view.translate(this.camera.getPosition());
+        view.translate(this.camera.getPosition().negate());
         proj.setPerspective((float) Math.toRadians(this.camera.getFov()), (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
 
         this.postFramebuffer.bind();
@@ -124,4 +131,21 @@ public class MainRenderer {
 
     }
 
+    private void updateGroundPlane() {
+        if (this.groundPlane == null) {
+            this.groundPlane = new Square(0, 0, 0, true);
+            this.groundPlane.rotate(-90f, 0, 0);
+            this.groundPlane.getTransformMatrix().scale(10f);
+            this.groundPlane.setColor(0.1f, 0.1f, 0.1f);
+            SceneManager.addObject(this.groundPlane);
+        }
+
+
+//        Vector3f cameraPos = this.camera.getPosition();
+//        this.groundPlane.setPosition(0, 0, 0);
+    }
+
+    public Camera getCamera() {
+        return camera;
+    }
 }

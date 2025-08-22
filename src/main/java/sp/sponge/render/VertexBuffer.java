@@ -1,6 +1,7 @@
 package sp.sponge.render;
 
 import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL11;
@@ -28,10 +29,11 @@ public class VertexBuffer {
         this.vertexDataType = vertexDataType;
     }
 
-    public VertexBuffer vertex(Vector3f offset, float x, float y, float z) {
-        this.buffer.putFloat(x + offset.x);
-        this.buffer.putFloat(y + offset.y);
-        this.buffer.putFloat(z + offset.z);
+    public VertexBuffer vertex(Matrix4f offset, float x, float y, float z) {
+        Vector3f vector3f = offset.transformPosition(x, y, z, new Vector3f());
+        this.buffer.putFloat(vector3f.x);
+        this.buffer.putFloat(vector3f.y);
+        this.buffer.putFloat(vector3f.z);
         return this;
     }
 
@@ -69,6 +71,14 @@ public class VertexBuffer {
         }
         this.buffer.putFloat(x);
         this.buffer.putFloat(y);
+        return this;
+    }
+
+    public VertexBuffer material(int mat) {
+        if (!vertexDataType.contains(VertexData.MATERIAL)) {
+            throw new RuntimeException("Tried to add material data to a buffer that doesn't accept it!");
+        }
+        this.buffer.putInt(mat);
         return this;
     }
 
@@ -165,7 +175,8 @@ public class VertexBuffer {
         POSITION(3, GL11.GL_FLOAT, false),
         COLOR(4, GL11.GL_FLOAT, false),
         NORMAL(3, GL11.GL_FLOAT, true),
-        TEXTURE(2, GL11.GL_FLOAT, false);
+        TEXTURE(2, GL11.GL_FLOAT, false),
+        MATERIAL(1, GL11.GL_INT, false);
 
 
         private final int size;
@@ -179,7 +190,7 @@ public class VertexBuffer {
             this.normalized = normalized;
 
             switch (type) {
-                case GL11.GL_FLOAT -> this.numOfBytes = 4;
+                case GL11.GL_FLOAT, GL11.GL_INT -> this.numOfBytes = 4;
             }
 
             this.numOfBytes *= size;

@@ -5,7 +5,6 @@ import sp.sponge.render.Mesh;
 import sp.sponge.util.ObjParser;
 
 public abstract class AbstractObjObject extends SceneObject {
-    private Mesh mesh;
     private final String path;
 
     public AbstractObjObject(float x, float y, float z, boolean fixed, String objPath) {
@@ -19,13 +18,7 @@ public abstract class AbstractObjObject extends SceneObject {
     }
 
     @Override
-    public Mesh getMesh() {
-        if (this.mesh == null || this.isDirty()) {
-            this.mesh = ObjParser.objToMesh(this.path);
-            this.clean();
-        }
-
-        this.mesh.setPosition(this.position);
-        return this.mesh;
+    public Mesh createMesh() {
+        return ObjParser.objToMesh(this.path);
     }
 }

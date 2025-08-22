@@ -40,16 +40,17 @@ public class AddObject {
             }
             for (SceneObject object : SceneManager.getSceneObjects()) {
                 if(ImGui.treeNode(object.toString())) {
-                    float[] positionX = new float[]{object.getX()};
-                    float[] positionY = new float[]{object.getY()};
-                    float[] positionZ = new float[]{object.getZ()};
+                    if (!object.isFixed()) {
+                        float[] positionX = new float[]{object.getX()};
+                        float[] positionY = new float[]{object.getY()};
+                        float[] positionZ = new float[]{object.getZ()};
 
-                    ImGui.dragFloat("X", positionX, 0.01f);
-                    ImGui.dragFloat("Y", positionY, 0.01f);
-                    ImGui.dragFloat("Z", positionZ, 0.01f);
+                        ImGui.dragFloat("X", positionX, 0.01f);
+                        ImGui.dragFloat("Y", positionY, 0.01f);
+                        ImGui.dragFloat("Z", positionZ, 0.01f);
 
-                    object.setPosition(new Vector3f(positionX[0], positionY[0], positionZ[0]));
-
+                        object.setPosition(new Vector3f(positionX[0], positionY[0], positionZ[0]));
+                    }
                     if (object instanceof ObjectWithResolution objectWithResolution) {
                         int[] resolution = new int[]{objectWithResolution.getResolution()};
                         ImGui.sliderInt("Resolution", resolution, 4, 50);
