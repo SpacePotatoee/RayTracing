@@ -27,17 +27,17 @@ public class Circle extends SceneObject implements ObjectWithResolution {
             double angleFactor = 360.0 / this.resolution;
 
             double angle = Math.toRadians(angleFactor * i);
-            float offsetY = (float) (Math.sin(angle) * radius + this.position.y);
-            float offsetX = (float) (Math.cos(angle) * radius + this.position.x);
+            float offsetY = (float) (Math.sin(angle) * radius);
+            float offsetX = (float) (Math.cos(angle) * radius);
 
             double angle2 = Math.toRadians(angleFactor * (i + 1));
-            float offset2Y = (float) (Math.sin(angle2) * radius + this.position.y);
-            float offset2X = (float) (Math.cos(angle2) * radius + this.position.x);
+            float offset2Y = (float) (Math.sin(angle2) * radius);
+            float offset2X = (float) (Math.cos(angle2) * radius);
 
 
-            Mesh.Vertex v0 = new Mesh.Vertex(this.position.x, this.position.y, this.position.z,0, 0, 1);
-            Mesh.Vertex v1 = new Mesh.Vertex(offsetX, offsetY, this.position.z, 0, 0, 1);
-            Mesh.Vertex v2 = new Mesh.Vertex(offset2X, offset2Y, this.position.z,0, 0, 1);
+            Mesh.Vertex v0 = new Mesh.Vertex(0, 0, 0,0, 0, 1);
+            Mesh.Vertex v1 = new Mesh.Vertex(offsetX, offsetY, 0, 0, 0, 1);
+            Mesh.Vertex v2 = new Mesh.Vertex(offset2X, offset2Y, 0,0, 0, 1);
 
             mesh.addFace(v0, v1, v2);
         }

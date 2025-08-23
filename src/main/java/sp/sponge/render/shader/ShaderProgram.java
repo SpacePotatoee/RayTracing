@@ -1,17 +1,26 @@
 package sp.sponge.render.shader;
 
 import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+import org.lwjgl.opengl.GL15;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL20C;
+import org.lwjgl.opengl.GL43;
 import sp.sponge.Sponge;
+import sp.sponge.render.Camera;
 import sp.sponge.resources.ResourceManager;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.logging.Logger;
+
+import static org.lwjgl.opengl.GL30C.glBindBufferBase;
+import static org.lwjgl.opengl.GL31C.GL_UNIFORM_BUFFER;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 
 public class ShaderProgram {
     public static HashMap<ShaderProgram, File[]> shaders = new HashMap<>();
@@ -20,11 +29,11 @@ public class ShaderProgram {
     private int shaderProgram;
     public long lastUpdateTime;
 
-    private Matrix4f model = new Matrix4f();
-    private Matrix4f view = new Matrix4f();
+    private Matrix4f modelView = new Matrix4f();
     private Matrix4f proj = new Matrix4f();
+    private static int cameraBuffer = -1;
 
-//    private final FloatBuffer matrixArray;
+    private static FloatBuffer cameraMatrices;
 
     public ShaderProgram(String path) {
         Logger logger = Sponge.getInstance().getLogger();
@@ -43,6 +52,14 @@ public class ShaderProgram {
         }
 
         shaders.put(this, new File[]{defaultVertexShader, defaultFragmentShader});
+
+        if (cameraBuffer == -1) {
+            cameraBuffer = GL15.glGenBuffers();
+            GL15.glBindBuffer(GL_UNIFORM_BUFFER, cameraBuffer);
+            GL15.glBufferData(GL_UNIFORM_BUFFER, 67 * Float.BYTES, GL15.GL_DYNAMIC_DRAW);
+            GL15.glBindBuffer(GL_UNIFORM_BUFFER, 0);
+            cameraMatrices = BufferUtils.createFloatBuffer(67);
+        }
     }
 
     public void compile(String vertexShaderSrc, String fragmentShaderSrc) {
@@ -81,7 +98,7 @@ public class ShaderProgram {
         success = GL20.glGetProgrami(shaderProgram, GL20.GL_LINK_STATUS);
         if (success == GL20.GL_FALSE) {
             int len = GL20.glGetProgrami(shaderProgram, GL20.GL_INFO_LOG_LENGTH);
-            logger.severe("ERROR compiling shader proram");
+            logger.severe("ERROR compiling shader program");
             logger.info(GL20.glGetProgramInfoLog(shaderProgram, len));
         }
     }
@@ -98,36 +115,58 @@ public class ShaderProgram {
     }
 
     public void bind() {
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, cameraBuffer);
         GL20C.glUseProgram(shaderProgram);
     }
 
     public static void unbind() {
+        glBindBufferBase(GL_UNIFORM_BUFFER, 0, 0);
+        cameraMatrices.clear();
         GL20C.glUseProgram(0);
     }
 
-    public void setMatrices(Matrix4f model, Matrix4f view, Matrix4f proj) {
-        this.model = new Matrix4f(model);
-        this.view = new Matrix4f(view);
+    public void setMatrices(Matrix4f modelView, Matrix4f proj) {
+        this.modelView = new Matrix4f(modelView);
         this.proj = new Matrix4f(proj);
         this.uploadDefaultUniforms();
     }
 
     public void uploadDefaultUniforms() {
         int modelLocation = GL20.glGetUniformLocation(shaderProgram, "model");
-//        int viewLocation = GL20.glGetUniformLocation(shaderProgram, "view");
         int projLocation = GL20.glGetUniformLocation(shaderProgram, "proj");
 
         float[] array = new float[16];
 
-//        matrixArray.clear();
         this.proj.get(array);
         GL20.glUniformMatrix4fv(projLocation, false, array);
 
-        this.model.mul(view).get(array);
+        this.modelView.get(array);
         GL20.glUniformMatrix4fv(modelLocation, false, array);
 
-//        this.view.get(array);
-//        GL20.glUniformMatrix4fv(viewLocation, false, array);
+        Camera camera = Sponge.getInstance().renderer.getCamera();
+
+        camera.getProjectionMatrix().get(cameraMatrices);
+        cameraMatrices.position(16);
+        camera.getInvProjectionMatrix().get(cameraMatrices);
+        cameraMatrices.position(32);
+        camera.getModelViewMatrix().get(cameraMatrices);
+        cameraMatrices.position(48);
+        camera.getInvModelViewMatrix().get(cameraMatrices);
+        cameraMatrices.position(64);
+
+        cameraMatrices.put(camera.getPosition().x);
+        cameraMatrices.put(camera.getPosition().y);
+        cameraMatrices.put(camera.getPosition().z);
+
+
+        GL15.glBindBuffer(GL_UNIFORM_BUFFER, cameraBuffer);
+        GL15.glBufferSubData(GL_UNIFORM_BUFFER, 0, cameraMatrices.flip());
+        GL15.glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    }
+
+    public void setInt(String uniform, int value) {
+        int location = GL20.glGetUniformLocation(shaderProgram, uniform);
+        GL20.glUniform1i(location, value);
     }
 
     public void bindTexture(String name, int texture) {

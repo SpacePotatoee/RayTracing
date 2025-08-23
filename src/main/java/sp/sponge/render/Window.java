@@ -71,7 +71,7 @@ public class Window {
             throw new IllegalStateException("Failed to initialize GLFW");
         }
 
-        glslVersion = "#version 330 core";
+        glslVersion = "#version 410 core";
         GLFW.glfwDefaultWindowHints();
         // Version 3.3
         GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);

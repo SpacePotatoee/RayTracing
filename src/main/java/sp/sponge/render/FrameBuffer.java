@@ -1,6 +1,7 @@
 package sp.sponge.render;
 
 import org.lwjgl.opengl.*;
+import sp.sponge.Sponge;
 import sp.sponge.render.shader.ShaderProgram;
 import sp.sponge.render.shader.ShaderRegistry;
 
@@ -19,7 +20,7 @@ public class FrameBuffer {
     public FrameBuffer(int width, int height) {
         this.width = width;
         this.height = height;
-        this.screenBuffer = new VertexBuffer(168, VertexBuffer.VertexDataType.POSITION_TEXTURE);
+        this.screenBuffer = new VertexBuffer(168, VertexBuffer.VertexDataType.POSITION_TEXTURE, false);
         this.init();
     }
 
@@ -84,6 +85,9 @@ public class FrameBuffer {
 
         ShaderRegistry.postShader.bind();
         this.screenBuffer.bind();
+        VertexBuffer buffer = Sponge.getInstance().renderer.mainVertexBuffer;
+        buffer.bindRayTracingBuffers();
+        ShaderRegistry.postShader.setInt("NumOfTriangles", buffer.getNumOfTriangles());
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.colorTexture);
         ShaderRegistry.postShader.bindTexture("DiffuseTextureSampler", 0);
@@ -96,6 +100,7 @@ public class FrameBuffer {
 
         ShaderProgram.unbind();
         VertexBuffer.unbind();
+        buffer.endRayTRacing();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
     }
 

@@ -1,6 +1,8 @@
 package sp.sponge.render;
 
 import imgui.ImGui;
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import sp.sponge.input.Input;
 import sp.sponge.input.keybind.Keybinds;
@@ -10,6 +12,12 @@ public class Camera {
     private float fov;
     private final Vec3f position;
     private final Vec3f rotationVector;
+
+    private final Matrix4f modelViewMatrix = new Matrix4f().identity();
+    private final Matrix4f invModelViewMatrix = new Matrix4f().identity();
+
+    private final Matrix4f projectionMatrix = new Matrix4f().identity();
+    private final Matrix4f invProjectionMatrix = new Matrix4f().identity();
 
     public Camera() {
         this.fov = 45;
@@ -65,6 +73,14 @@ public class Camera {
         } else {
             input.unlockCursor(window);
         }
+
+        this.modelViewMatrix.identity();
+        this.modelViewMatrix.setRotationXYZ(this.getRotation().x, this.getRotation().y, 0.0f);
+        this.modelViewMatrix.translate(this.getPosition().negate());
+        this.projectionMatrix.setPerspective((float) Math.toRadians(this.getFov()), (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
+
+        this.modelViewMatrix.invert(this.invModelViewMatrix);
+        this.projectionMatrix.invertPerspective(this.invProjectionMatrix);
     }
 
     private Vec3f getRotationVector() {
@@ -81,6 +97,22 @@ public class Camera {
 
     public Vector3f getPosition() {
         return position.toVector3f();
+    }
+
+    public Matrix4f getModelViewMatrix() {
+        return modelViewMatrix;
+    }
+
+    public Matrix4f getInvModelViewMatrix() {
+        return invModelViewMatrix;
+    }
+
+    public Matrix4f getProjectionMatrix() {
+        return projectionMatrix;
+    }
+
+    public Matrix4f getInvProjectionMatrix() {
+        return invProjectionMatrix;
     }
 
     public void renderImGui() {

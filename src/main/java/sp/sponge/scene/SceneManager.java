@@ -12,7 +12,7 @@ public class SceneManager {
     }
 
     public static void clear() {
-        sceneObjects.clear();
+        sceneObjects.removeIf(sceneObject -> !sceneObject.isFixed());
     }
 
     public static void addObject(SceneObject object) {

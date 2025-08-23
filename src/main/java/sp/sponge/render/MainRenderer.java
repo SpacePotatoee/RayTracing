@@ -13,6 +13,7 @@ import sp.sponge.render.shader.ShaderRegistry;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.objects.custom.Square;
+import sp.sponge.util.Transformation;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -22,7 +23,7 @@ public class MainRenderer {
     private long updateTime;
     private int fpsCounter = 0;
     private String currentFpsString = "";
-    private final VertexBuffer mainVertexBuffer;
+    public final VertexBuffer mainVertexBuffer;
     private final Window window;
     private final Camera camera;
     private final FrameBuffer postFramebuffer;
@@ -32,7 +33,7 @@ public class MainRenderer {
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
-        this.mainVertexBuffer = new VertexBuffer(100000000, VertexBuffer.VertexDataType.POSITION_COLOR_NORMAL);
+        this.mainVertexBuffer = new VertexBuffer(100000000, VertexBuffer.VertexDataType.POSITION_COLOR_NORMAL, true);
         this.window = Window.getWindow();
         this.camera = new Camera();
         this.postFramebuffer = new FrameBuffer(this.window.getWidth(), this.window.getHeight());
@@ -55,19 +56,11 @@ public class MainRenderer {
             }
         }
 
-        Matrix4f model = new Matrix4f().identity();
-        Matrix4f view = new Matrix4f().identity();
-        Matrix4f proj = new Matrix4f();
-
-        view.rotate(new Quaternionf().rotateXYZ(this.camera.getRotation().x, this.camera.getRotation().y, 0.0f));
-        view.translate(this.camera.getPosition().negate());
-        proj.setPerspective((float) Math.toRadians(this.camera.getFov()), (float) window.getWidth() / window.getHeight(), 0.01f, 1000.0f);
-
         this.postFramebuffer.bind();
         OpenGLSystem.enableDepthTest();
         this.mainVertexBuffer.bind();
         ShaderRegistry.defaultShader.bind();
-        ShaderRegistry.defaultShader.setMatrices(model, view, proj);
+        ShaderRegistry.defaultShader.setMatrices(this.camera.getModelViewMatrix(), this.camera.getProjectionMatrix());
 
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         this.mainVertexBuffer.drawElements();
@@ -106,27 +99,31 @@ public class MainRenderer {
     }
 
     public void renderImGui() {
-        fpsCounter++;
-        if (System.currentTimeMillis() >=  updateTime + 1000L) {
-            this.currentFpsString = "FPS: " + fpsCounter;
-            fpsCounter = 0;
-            updateTime = System.currentTimeMillis();
-        }
-
-        ImGui.text(this.currentFpsString);
-        ImGui.spacing();
-
-        if (ImGui.beginTabBar("main", ImGuiTabBarFlags.None)) {
-            if (ImGui.beginTabItem("Scene")) {
-                AddObject.render();
-                ImGui.endTabItem();
+        if (ImGui.begin("MAIN")) {
+            fpsCounter++;
+            if (System.currentTimeMillis() >= updateTime + 1000L) {
+                this.currentFpsString = "FPS: " + fpsCounter;
+                fpsCounter = 0;
+                updateTime = System.currentTimeMillis();
             }
 
-            if (ImGui.beginTabItem("Camera")) {
-                this.camera.renderImGui();
-                ImGui.endTabItem();
+            ImGui.text(this.currentFpsString);
+            ImGui.spacing();
+
+            if (ImGui.beginTabBar("main", ImGuiTabBarFlags.None)) {
+                if (ImGui.beginTabItem("Scene")) {
+                    AddObject.render();
+                    ImGui.endTabItem();
+                }
+
+                if (ImGui.beginTabItem("Camera")) {
+                    this.camera.renderImGui();
+                    ImGui.endTabItem();
+                }
+                ImGui.endTabBar();
             }
-            ImGui.endTabBar();
+
+            ImGui.end();
         }
 
     }
@@ -134,9 +131,11 @@ public class MainRenderer {
     private void updateGroundPlane() {
         if (this.groundPlane == null) {
             this.groundPlane = new Square(0, 0, 0, true);
-            this.groundPlane.rotate(-90f, 0, 0);
-            this.groundPlane.getTransformMatrix().scale(10f);
-            this.groundPlane.setColor(0.1f, 0.1f, 0.1f);
+            Transformation transformation = this.groundPlane.getTransformations();
+
+            transformation.rotate(-90f, 0, 0);
+            transformation.scale(10f);
+            this.groundPlane.setColor(0.36078431372f, 0.50588235294f, 0.61960784313f);
             SceneManager.addObject(this.groundPlane);
         }
 

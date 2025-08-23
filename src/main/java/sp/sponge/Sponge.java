@@ -1,5 +1,7 @@
 package sp.sponge;
 
+import imgui.ImGui;
+import imgui.flag.ImGuiConfigFlags;
 import sp.sponge.input.keybind.Keybinds;
 import sp.sponge.render.MainRenderer;
 import sp.sponge.render.Window;

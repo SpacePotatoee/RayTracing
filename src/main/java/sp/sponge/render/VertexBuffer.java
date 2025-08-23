@@ -4,16 +4,16 @@ import it.unimi.dsi.fastutil.objects.Object2BooleanArrayMap;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL15;
-import org.lwjgl.opengl.GL20;
-import org.lwjgl.opengl.GL30;
+import org.lwjgl.opengl.*;
 
 import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 
 import static org.lwjgl.opengl.GL11C.*;
+import static org.lwjgl.opengl.GL30C.glBindBufferBase;
 import static org.lwjgl.opengl.GL30C.glBindVertexArray;
+import static org.lwjgl.opengl.GL43C.GL_SHADER_STORAGE_BUFFER;
 
 public class VertexBuffer {
     private final ByteBuffer buffer;
@@ -21,12 +21,23 @@ public class VertexBuffer {
     private final int vertexArrayID, vertexBufferID;
     private final VertexDataType vertexDataType;
 
-    public VertexBuffer(int capacity, VertexDataType vertexDataType) {
+    private final boolean rayTrace;
+    private int trianglePositionsBuffer;
+    private ByteBuffer trianglePositions;
+
+    private int numOfTriangles;
+
+    public VertexBuffer(int capacity, VertexDataType vertexDataType, boolean rayTrace) {
         this.buffer = BufferUtils.createByteBuffer(capacity);
 
         this.vertexArrayID = GL30.glGenVertexArrays();
         this.vertexBufferID = GL30.glGenBuffers();
         this.vertexDataType = vertexDataType;
+        this.rayTrace = rayTrace;
+        if (rayTrace) {
+            this.trianglePositions = BufferUtils.createByteBuffer(capacity);
+            this.trianglePositionsBuffer = GL30.glGenBuffers();
+        }
     }
 
     public VertexBuffer vertex(Matrix4f offset, float x, float y, float z) {
@@ -34,6 +45,14 @@ public class VertexBuffer {
         this.buffer.putFloat(vector3f.x);
         this.buffer.putFloat(vector3f.y);
         this.buffer.putFloat(vector3f.z);
+
+        if (rayTrace) {
+            this.trianglePositions.putFloat(vector3f.x);
+            this.trianglePositions.putFloat(vector3f.y);
+            this.trianglePositions.putFloat(vector3f.z);
+            this.trianglePositions.putFloat(0);
+        }
+
         return this;
     }
 
@@ -41,6 +60,14 @@ public class VertexBuffer {
         this.buffer.putFloat(x);
         this.buffer.putFloat(y);
         this.buffer.putFloat(z);
+
+        if (rayTrace) {
+            this.trianglePositions.putFloat(x);
+            this.trianglePositions.putFloat(y);
+            this.trianglePositions.putFloat(z);
+            this.trianglePositions.putFloat(0);
+        }
+
         return this;
     }
 
@@ -84,6 +111,9 @@ public class VertexBuffer {
 
     public void next() {
         this.vertexCount++;
+        if (this.vertexCount % 3 == 0) {
+            this.numOfTriangles++;
+        }
     }
 
     public void drawElements() {
@@ -93,11 +123,27 @@ public class VertexBuffer {
 
     public void end() {
         GL30.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
-        GL30.glBindBuffer(GL15.GL_ELEMENT_ARRAY_BUFFER, 0);
         this.buffer.clear();
         this.vertexCount = 0;
 
         this.disableVertexStates();
+    }
+
+    public void endRayTRacing() {
+        if (rayTrace) {
+//            GL30.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+            this.trianglePositions.clear();
+            this.numOfTriangles = 0;
+        }
+    }
+
+    public void bindRayTracingBuffers() {
+        if (rayTrace) {
+//            GL30.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, this.trianglePositionsBuffer);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, this.trianglePositionsBuffer);
+            GL30.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, trianglePositions.flip(), GL15.GL_DYNAMIC_DRAW);
+        }
     }
 
     public void bind() {
@@ -121,7 +167,9 @@ public class VertexBuffer {
         glBindVertexArray(0);
     }
 
-
+    public int getNumOfTriangles() {
+        return this.numOfTriangles;
+    }
 
     public enum VertexDataType {
         POSITION_COLOR_NORMAL(VertexData.POSITION, VertexData.COLOR, VertexData.NORMAL),

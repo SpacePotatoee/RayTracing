@@ -4,12 +4,12 @@ import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
+import sp.sponge.util.Transformation;
 
 public abstract class SceneObject {
     protected Mesh mesh;
     protected boolean fixed;
-    protected Matrix4f transformMatrix;
-    protected Vector3f position;
+    protected Transformation transformation;
     protected Vector3f color;
     private boolean dirty;
 
@@ -19,8 +19,8 @@ public abstract class SceneObject {
 
     public SceneObject(Vector3f position, boolean fixed) {
         this.fixed = fixed;
-        this.position = position;
-        this.transformMatrix = new Matrix4f().translate(position);
+        this.transformation = new Transformation();
+        this.transformation.setPosition(position);
         this.color = new Vector3f(0.5f);
     }
 
@@ -36,21 +36,6 @@ public abstract class SceneObject {
         return this.mesh;
     }
 
-    public Vector3f getPosition() {
-        return this.position;
-    }
-
-    public void setPosition(Vector3f position) {
-        this.position = position;
-        this.transformMatrix.setTranslation(position);
-    }
-
-    public void setPosition(float x, float y, float z) {
-        Vector3f newPosition = new Vector3f(x, y, z);
-        this.position = newPosition;
-        this.transformMatrix.setTranslation(newPosition);
-    }
-
     public void setColor(Vector3f color) {
         this.color = color;
     }
@@ -63,24 +48,13 @@ public abstract class SceneObject {
         return color;
     }
 
-    public float getX() {
-        return this.position.x;
+    public Transformation getTransformations() {
+        return this.transformation;
     }
 
-    public float getY() {
-        return this.position.y;
-    }
-
-    public float getZ() {
-        return this.position.z;
-    }
-
-    public void rotate(float x, float y, float z) {
-        this.transformMatrix.rotate(new Quaternionf().rotateXYZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z)));
-    }
 
     public Matrix4f getTransformMatrix() {
-        return this.transformMatrix;
+        return this.transformation.getTransformationMatrix();
     }
 
     public boolean shouldUseResolution() {
