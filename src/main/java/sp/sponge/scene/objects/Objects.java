@@ -10,34 +10,28 @@ import sp.sponge.scene.registries.custom.object.ObjectType;
 
 public class Objects {
 
-    private static final ObjectType<SceneObject> SQUARE = Registries.SceneObjectRegistry.register(
-            Registries.SceneObjectRegistry,
+    public static final ObjectType<SceneObject> SQUARE = Registries.SceneObjectRegistry.register(
             new ObjectType<>(Square.class, "square", Square::new)
     );
 
-    private static final ObjectType<SceneObject> CIRCLE = Registries.SceneObjectRegistry.register(
-            Registries.SceneObjectRegistry,
+    public static final ObjectType<SceneObject> CIRCLE = Registries.SceneObjectRegistry.register(
             new ObjectType<>(Circle.class, "circle", Circle::new)
     );
 
-    private static final ObjectType<SceneObject> SPHERE = Registries.SceneObjectRegistry.register(
-            Registries.SceneObjectRegistry,
+    public static final ObjectType<SceneObject> SPHERE = Registries.SceneObjectRegistry.register(
             new ObjectType<>(Sphere.class, "sphere", Sphere::new)
     );
 
-    private static final ObjectType<SceneObject> CUBE = Registries.SceneObjectRegistry.register(
-            Registries.SceneObjectRegistry,
+    public static final ObjectType<SceneObject> CUBE = Registries.SceneObjectRegistry.register(
             new ObjectType<>(Cube.class, "cube", Cube::new)
     );
 
-    private static final ObjectType<SceneObject> DRAGON = Registries.SceneObjectRegistry.register(
-            Registries.SceneObjectRegistry,
+    public static final ObjectType<SceneObject> DRAGON = Registries.SceneObjectRegistry.register(
             new ObjectType<>(Dragon.class, "dragon", Dragon::new)
     );
 
-    private static final ObjectType<SceneObject> BUNNY = Registries.SceneObjectRegistry.register(
-            Registries.SceneObjectRegistry,
-            new ObjectType<>(Bunny.class, "bunny", Bunny::new)
+    public static final ObjectType<SceneObject> BUNNY = Registries.SceneObjectRegistry.register(
+            new ObjectType<>(AbstractObjObject.class, "bunny", Bunny::new)
     );
 
     public static void registerObjects() {

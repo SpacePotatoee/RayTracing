@@ -1,21 +1,22 @@
 package sp.sponge.scene.objects.custom;
 
-import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
 import sp.sponge.scene.objects.ObjectWithResolution;
+import sp.sponge.scene.objects.Objects;
 import sp.sponge.scene.objects.SceneObject;
+import sp.sponge.util.Transformation;
 
 public class Circle extends SceneObject implements ObjectWithResolution {
     private Mesh mesh;
     private int resolution = 12;
 
     //TODO: Make the positions of the shapes actually do something
-    public Circle(float x, float y, float z, boolean fixed) {
-        super(x, y, z, fixed);
+    public Circle(boolean fixed) {
+        super(Objects.CIRCLE, fixed);
     }
 
-    public Circle(Vector3f position, boolean fixed) {
-        super(position, fixed);
+    public Circle(Transformation transformation, boolean fixed) {
+        super(Objects.CIRCLE, transformation, fixed);
     }
 
     @Override

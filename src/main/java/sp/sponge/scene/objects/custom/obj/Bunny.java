@@ -1,14 +1,15 @@
 package sp.sponge.scene.objects.custom.obj;
 
-import org.joml.Vector3f;
 import sp.sponge.scene.objects.AbstractObjObject;
+import sp.sponge.scene.objects.Objects;
+import sp.sponge.util.Transformation;
 
 public class Bunny extends AbstractObjObject {
-    public Bunny(float x, float y, float z, boolean fixed) {
-        super(x, y, z, fixed, "bunny");
+    public Bunny(boolean fixed) {
+        super(Objects.BUNNY, fixed, "bunny");
     }
 
-    public Bunny(Vector3f position, boolean fixed) {
-        super(position, fixed, "bunny");
+    public Bunny(Transformation transformation, boolean fixed) {
+        super(Objects.BUNNY, transformation, fixed, "bunny");
     }
 }

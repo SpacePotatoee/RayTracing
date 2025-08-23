@@ -1,10 +1,9 @@
 package sp.sponge.render;
 
 import imgui.ImGui;
+import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiTabBarFlags;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
+import imgui.type.ImString;
 import org.lwjgl.opengl.GL11;
 import sp.sponge.Sponge;
 import sp.sponge.render.imgui.AddObject;
@@ -17,6 +16,9 @@ import sp.sponge.util.Transformation;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Vector;
 
 public class MainRenderer {
@@ -27,6 +29,7 @@ public class MainRenderer {
     private final Window window;
     private final Camera camera;
     private final FrameBuffer postFramebuffer;
+    private final List<File> savedFiles = new ArrayList<>();
 
 //    private boolean initGroundPlane;
     private Square groundPlane;
@@ -112,6 +115,57 @@ public class MainRenderer {
 
             if (ImGui.beginTabBar("main", ImGuiTabBarFlags.None)) {
                 if (ImGui.beginTabItem("Scene")) {
+                    boolean savePopup = ImGui.button("Save Scene");
+
+                    if (savePopup) {
+                        ImGui.openPopup("SaveName");
+                    }
+
+                    if (ImGui.beginPopup("SaveName")) {
+                        ImString filePath = new ImString();
+                        if (ImGui.inputText("File Name", filePath, ImGuiInputTextFlags.EnterReturnsTrue)) {
+                            SceneManager.saveScene(filePath.get());
+                            ImGui.closeCurrentPopup();
+                        }
+                        ImGui.endPopup();
+                    }
+
+                    ImGui.sameLine();
+
+                    boolean loadPopup = ImGui.button("Load Scene");
+
+
+                    if (loadPopup) {
+                        ImGui.openPopup("LoadName");
+                        savedFiles.clear();
+
+                        File scenes = Sponge.getInstance().getRunFiles().scenesFile();
+                        if (scenes.exists() && scenes.isDirectory()) {
+                            savedFiles.addAll(Arrays.asList(scenes.listFiles()));
+                        }
+
+                    }
+
+                    if (ImGui.beginPopup("LoadName")) {
+                        boolean selected = false;
+                        if (ImGui.beginCombo("File", "")) {
+                            for (File file : savedFiles) {
+                                if (ImGui.selectable(file.getName())) {
+
+                                    SceneManager.loadScene(file.getName());
+                                    selected = true;
+                                    break;
+                                }
+                            }
+                            ImGui.endCombo();
+                        }
+
+                        if (selected) {
+                            ImGui.closeCurrentPopup();
+                        }
+                        ImGui.endPopup();
+                    }
+
                     AddObject.render();
                     ImGui.endTabItem();
                 }
@@ -142,6 +196,10 @@ public class MainRenderer {
 
 //        Vector3f cameraPos = this.camera.getPosition();
 //        this.groundPlane.setPosition(0, 0, 0);
+    }
+
+    public Square getGroundPlane() {
+        return this.groundPlane;
     }
 
     public Camera getCamera() {

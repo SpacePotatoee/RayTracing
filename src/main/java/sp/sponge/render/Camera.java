@@ -30,6 +30,9 @@ public class Camera {
     }
 
     public void updateCamera() {
+        if (ImGui.getIO().getWantTextInput()) {
+            return;
+        }
         float speed = 0.02f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {

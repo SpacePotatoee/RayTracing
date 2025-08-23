@@ -1,17 +1,18 @@
 package sp.sponge.scene.objects.custom;
 
-import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
+import sp.sponge.scene.objects.Objects;
 import sp.sponge.scene.objects.SceneObject;
+import sp.sponge.util.Transformation;
 
 public class Square extends SceneObject {
 
     public Square(float x, float y, float z, boolean fixed) {
-        super(x, y, z, fixed);
+        super(Objects.SQUARE, fixed);
     }
 
-    public Square(Vector3f position, boolean fixed) {
-        super(position, fixed);
+    public Square(Transformation transformation, boolean fixed) {
+        super(Objects.SQUARE, transformation, fixed);
     }
 
     @Override

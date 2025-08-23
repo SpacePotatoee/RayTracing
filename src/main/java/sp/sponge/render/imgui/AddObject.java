@@ -29,7 +29,7 @@ public class AddObject {
             }
 
             if (ImGui.button("Add Object") && addedObject != null) {
-                SceneObject newObject = addedObject.create(new Vector3f(0, 0, 0), false);
+                SceneObject newObject = addedObject.create(new Transformation(), false);
 
                 SceneManager.addObject(newObject);
             }

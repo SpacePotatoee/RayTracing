@@ -113,6 +113,9 @@ dependencies {
 
     //Fast Utils
     implementation 'it.unimi.dsi:fastutil:8.2.1'
+
+    //GSON
+    implementation 'com.google.code.gson:gson:2.13.1'
 }
 
 test {

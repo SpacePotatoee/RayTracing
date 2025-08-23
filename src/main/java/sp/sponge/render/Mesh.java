@@ -5,17 +5,14 @@ import org.joml.Vector3f;
 import sp.sponge.scene.objects.SceneObject;
 
 public class Mesh {
-    private final Vertex[] vertices;
     private final Face[] faces;
 
     private Vector3f color;
     private Matrix4f transformMatrix;
 
-    private int currentVertexCount;
     private int currentFaceCount;
 
     public Mesh(int numberOfVertices, int numberOfFaces) {
-        this.vertices = new Vertex[numberOfVertices];
         this.faces = new Face[numberOfFaces];
         this.transformMatrix = new Matrix4f();
         this.color = new Vector3f(0.5f);

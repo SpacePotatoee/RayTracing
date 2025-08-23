@@ -1,7 +1,7 @@
 package sp.sponge.scene.registries.custom.object;
 
-import org.joml.Vector3f;
 import sp.sponge.scene.objects.SceneObject;
+import sp.sponge.util.Transformation;
 
 public class ObjectType<T extends SceneObject> {
     private final String name;
@@ -16,11 +16,11 @@ public class ObjectType<T extends SceneObject> {
         return this.name;
     }
 
-    public T create(Vector3f position, boolean fixed) {
-        return createObjectMethod.create(position, fixed);
+    public T create(Transformation transformation, boolean fixed) {
+        return createObjectMethod.create(transformation, fixed);
     }
 
     public interface CreateObject<T extends SceneObject> {
-        T create(Vector3f position, boolean fixed);
+        T create(Transformation transformation, boolean fixed);
     }
 }

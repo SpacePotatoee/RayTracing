@@ -1,19 +1,20 @@
 package sp.sponge.scene.objects.custom;
 
-import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
 import sp.sponge.scene.objects.ObjectWithResolution;
+import sp.sponge.scene.objects.Objects;
 import sp.sponge.scene.objects.SceneObject;
+import sp.sponge.util.Transformation;
 
 public class Sphere extends SceneObject implements ObjectWithResolution {
     private int resolution = 1;
 
     public Sphere(float x, float y, float z, boolean fixed) {
-        super(x, y, z, fixed);
+        super(Objects.SPHERE, fixed);
     }
 
-    public Sphere(Vector3f position, boolean fixed) {
-        super(position, fixed);
+    public Sphere(Transformation transformation, boolean fixed) {
+        super(Objects.SPHERE, transformation, fixed);
     }
 
     @Override

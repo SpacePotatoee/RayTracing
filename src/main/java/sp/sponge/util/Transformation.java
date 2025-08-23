@@ -10,7 +10,7 @@ public class Transformation {
     private Vector3f scale;
 
     public Transformation() {
-        this(new Vector3f(), new Quaternionf(), new Vector3f(1));
+        this(new Vector3f(), new Quaternionf(), new Vector3f(1.0f));
     }
 
     public Transformation(Vector3f translation, Quaternionf rotation, Vector3f scale) {
@@ -39,6 +39,10 @@ public class Transformation {
 
     public Quaternionf getRotation() {
         return this.rotation;
+    }
+
+    public void setRotation(float x, float y, float z) {
+        this.rotation = new Quaternionf().rotateXYZ((float) Math.toRadians(x), (float) Math.toRadians(y), (float) Math.toRadians(z));
     }
 
     public void rotate(float x, float y, float z) {

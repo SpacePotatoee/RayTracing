@@ -1,19 +1,20 @@
 package sp.sponge.scene.objects;
 
-import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
+import sp.sponge.scene.registries.custom.object.ObjectType;
 import sp.sponge.util.ObjParser;
+import sp.sponge.util.Transformation;
 
-public abstract class AbstractObjObject extends SceneObject {
+public class AbstractObjObject extends SceneObject {
     private final String path;
 
-    public AbstractObjObject(float x, float y, float z, boolean fixed, String objPath) {
-        super(x, y, z, fixed);
+    public AbstractObjObject(ObjectType<SceneObject> objectType, boolean fixed, String objPath) {
+        super(objectType, fixed);
         this.path = objPath;
     }
 
-    public AbstractObjObject(Vector3f position, boolean fixed, String objPath) {
-        super(position, fixed);
+    public AbstractObjObject(ObjectType<SceneObject> objectType, Transformation transformation, boolean fixed, String objPath) {
+        super(objectType, transformation, fixed);
         this.path = objPath;
     }
 

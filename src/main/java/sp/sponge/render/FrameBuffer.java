@@ -54,8 +54,6 @@ public class FrameBuffer {
         int i = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
         if (i != GL30.GL_FRAMEBUFFER_COMPLETE) {
             throw new RuntimeException("Error creating framebuffer");
-        } else {
-            System.out.println("OK");
         }
 
         unbind();

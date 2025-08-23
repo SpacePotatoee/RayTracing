@@ -1,26 +1,27 @@
 package sp.sponge.scene.objects;
 
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
+import sp.sponge.scene.registries.custom.object.ObjectType;
 import sp.sponge.util.Transformation;
 
 public abstract class SceneObject {
-    protected Mesh mesh;
+    protected final String name;
+    protected transient Mesh mesh;
     protected boolean fixed;
     protected Transformation transformation;
     protected Vector3f color;
     private boolean dirty;
 
-    public SceneObject(float x, float y, float z, boolean fixed) {
-        this(new Vector3f(x, y, z), fixed);
+    public SceneObject(ObjectType<SceneObject> objectType, boolean fixed) {
+        this(objectType, new Transformation(), fixed);
     }
 
-    public SceneObject(Vector3f position, boolean fixed) {
+    public SceneObject(ObjectType<SceneObject> objectType, Transformation transformation, boolean fixed) {
+        this.name = objectType.getName();
         this.fixed = fixed;
-        this.transformation = new Transformation();
-        this.transformation.setPosition(position);
+        this.transformation = transformation;
         this.color = new Vector3f(0.5f);
     }
 
@@ -51,7 +52,6 @@ public abstract class SceneObject {
     public Transformation getTransformations() {
         return this.transformation;
     }
-
 
     public Matrix4f getTransformMatrix() {
         return this.transformation.getTransformationMatrix();
