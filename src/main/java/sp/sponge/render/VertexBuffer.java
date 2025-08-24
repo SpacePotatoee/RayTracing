@@ -25,7 +25,11 @@ public class VertexBuffer {
     private int trianglePositionsBuffer;
     private ByteBuffer trianglePositions;
 
+    private int meshDataBuffer;
+    private ByteBuffer meshData;
+
     private int numOfTriangles;
+    private int numOfMeshes;
 
     public VertexBuffer(int capacity, VertexDataType vertexDataType, boolean rayTrace) {
         this.buffer = BufferUtils.createByteBuffer(capacity);
@@ -37,60 +41,89 @@ public class VertexBuffer {
         if (rayTrace) {
             this.trianglePositions = BufferUtils.createByteBuffer(capacity);
             this.trianglePositionsBuffer = GL30.glGenBuffers();
+
+            this.meshData = BufferUtils.createByteBuffer(capacity);
+            this.meshDataBuffer = GL30.glGenBuffers();
         }
     }
 
-    public VertexBuffer vertex(Matrix4f offset, float x, float y, float z) {
-        Vector3f vector3f = offset.transformPosition(x, y, z, new Vector3f());
-        this.buffer.putFloat(vector3f.x);
-        this.buffer.putFloat(vector3f.y);
-        this.buffer.putFloat(vector3f.z);
+    public VertexBuffer addMesh(Matrix4f offset, Mesh mesh) {
+        this.meshData.putInt(mesh.numOfFaces());
+        this.meshData.putInt(this.numOfTriangles);
+        this.meshData.putInt(0);
+        this.meshData.putInt(0);
 
-        if (rayTrace) {
-            this.trianglePositions.putFloat(vector3f.x);
-            this.trianglePositions.putFloat(vector3f.y);
-            this.trianglePositions.putFloat(vector3f.z);
-            this.trianglePositions.putFloat(0);
+        Vector3f meshColor = mesh.getMaterial().getColor();
+        this.meshData.putFloat(meshColor.x);
+        this.meshData.putFloat(meshColor.y);
+        this.meshData.putFloat(meshColor.z);
+        this.meshData.putFloat(mesh.getMaterial().getEmissiveStrength()); //Padding
+
+        for (Mesh.Face face : mesh.getFaces()) {
+            //Triangle
+
+            //Point A
+            Vector3f pointA = offset.transformPosition(face.v1().x(), face.v1().y(), face.v1().z(), new Vector3f());
+            this.trianglePositions.putFloat(pointA.x());
+            this.trianglePositions.putFloat(pointA.y());
+            this.trianglePositions.putFloat(pointA.z());
+            this.trianglePositions.putFloat(0.0f);
+
+            //Point B
+            Vector3f pointB = offset.transformPosition(face.v2().x(), face.v2().y(), face.v2().z(), new Vector3f());
+            this.trianglePositions.putFloat(pointB.x());
+            this.trianglePositions.putFloat(pointB.y());
+            this.trianglePositions.putFloat(pointB.z());
+            this.trianglePositions.putFloat(0.0f);
+
+            //Point c
+            Vector3f pointC = offset.transformPosition(face.v3().x(), face.v3().y(), face.v3().z(), new Vector3f());
+            this.trianglePositions.putFloat(pointC.x());
+            this.trianglePositions.putFloat(pointC.y());
+            this.trianglePositions.putFloat(pointC.z());
+            this.trianglePositions.putFloat(0.0f);
+            numOfTriangles++;
         }
+        numOfMeshes++;
 
         return this;
     }
+
+//    public VertexBuffer vertex(Matrix4f offset, float x, float y, float z) {
+//        Vector3f vector3f = offset.transformPosition(x, y, z, new Vector3f());
+//        this.buffer.putFloat(vector3f.x);
+//        this.buffer.putFloat(vector3f.y);
+//        this.buffer.putFloat(vector3f.z);
+//        return this;
+//    }
 
     public VertexBuffer vertex(float x, float y, float z) {
         this.buffer.putFloat(x);
         this.buffer.putFloat(y);
         this.buffer.putFloat(z);
-
-        if (rayTrace) {
-            this.trianglePositions.putFloat(x);
-            this.trianglePositions.putFloat(y);
-            this.trianglePositions.putFloat(z);
-            this.trianglePositions.putFloat(0);
-        }
-
         return this;
     }
 
-    public VertexBuffer color(float red, float green, float blue, float alpha) {
-        if (!vertexDataType.contains(VertexData.COLOR)) {
-            throw new RuntimeException("Tried to add color data to a buffer that doesn't accept it!");
-        }
-        this.buffer.putFloat(red);
-        this.buffer.putFloat(green);
-        this.buffer.putFloat(blue);
-        this.buffer.putFloat(alpha);
-        return this;
-    }
-
-    public VertexBuffer normal(float x, float y, float z) {
-        if (!vertexDataType.contains(VertexData.NORMAL)) {
-            throw new RuntimeException("Tried to add normal data to a buffer that doesn't accept it!");
-        }
-        this.buffer.putFloat(x);
-        this.buffer.putFloat(y);
-        this.buffer.putFloat(z);
-        return this;
-    }
+//    public VertexBuffer color(float red, float green, float blue, float alpha) {
+//        if (!vertexDataType.contains(VertexData.COLOR)) {
+//            throw new RuntimeException("Tried to add color data to a buffer that doesn't accept it!");
+//        }
+//        this.buffer.putFloat(red);
+//        this.buffer.putFloat(green);
+//        this.buffer.putFloat(blue);
+//        this.buffer.putFloat(alpha);
+//        return this;
+//    }
+//
+//    public VertexBuffer normal(float x, float y, float z) {
+//        if (!vertexDataType.contains(VertexData.NORMAL)) {
+//            throw new RuntimeException("Tried to add normal data to a buffer that doesn't accept it!");
+//        }
+//        this.buffer.putFloat(x);
+//        this.buffer.putFloat(y);
+//        this.buffer.putFloat(z);
+//        return this;
+//    }
 
     public VertexBuffer texture(float x, float y) {
         if (!vertexDataType.contains(VertexData.TEXTURE)) {
@@ -131,18 +164,22 @@ public class VertexBuffer {
 
     public void endRayTRacing() {
         if (rayTrace) {
-//            GL30.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, 0);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, 0);
             this.trianglePositions.clear();
+            this.meshData.clear();
             this.numOfTriangles = 0;
+            this.numOfMeshes = 0;
         }
     }
 
     public void bindRayTracingBuffers() {
         if (rayTrace) {
-//            GL30.glBindBuffer(GL43.GL_SHADER_STORAGE_BUFFER, this.trianglePositionsBuffer);
             glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, this.trianglePositionsBuffer);
             GL30.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, trianglePositions.flip(), GL15.GL_DYNAMIC_DRAW);
+
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, this.meshDataBuffer);
+            GL30.glBufferData(GL43.GL_SHADER_STORAGE_BUFFER, meshData.flip(), GL15.GL_DYNAMIC_DRAW);
         }
     }
 
@@ -167,8 +204,8 @@ public class VertexBuffer {
         glBindVertexArray(0);
     }
 
-    public int getNumOfTriangles() {
-        return this.numOfTriangles;
+    public int getNumOfMeshes() {
+        return this.numOfMeshes;
     }
 
     public enum VertexDataType {

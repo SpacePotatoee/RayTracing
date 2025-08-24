@@ -1,12 +1,15 @@
 package sp.sponge.render.imgui;
 
 import imgui.ImGui;
+import imgui.flag.ImGuiColorEditFlags;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.ObjectWithResolution;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.registries.Registries;
 import sp.sponge.scene.registries.custom.object.ObjectType;
+import sp.sponge.util.Material;
 import sp.sponge.util.Transformation;
 
 public class AddObject {
@@ -55,6 +58,9 @@ public class AddObject {
                         transformations.setPosition(positionX[0], positionY[0], positionZ[0]);
 
                         ImGui.spacing();
+                        ImGui.spacing();
+                        ImGui.spacing();
+
                         Vector3f scale = transformations.getScale();
                         float[] sizeX = new float[]{scale.x};
                         float[] sizeY = new float[]{scale.y};
@@ -65,12 +71,39 @@ public class AddObject {
                         ImGui.dragFloat("Z Size", sizeZ, 0.01f);
 
                         transformations.scale(sizeX[0], sizeY[0], sizeZ[0]);
+
+                        ImGui.spacing();
+                        ImGui.spacing();
+                        ImGui.spacing();
+
+                        Vector3f rotation = transformations.getRotation().getEulerAnglesXYZ(new Vector3f());
+                        float[] rotationX = new float[]{(float) Math.toDegrees(rotation.x)};
+                        float[] rotationY = new float[]{(float) Math.toDegrees(rotation.y)};
+                        float[] rotationZ = new float[]{(float) Math.toDegrees(rotation.z)};
+
+                        ImGui.dragFloat("X Rotation", rotationX, 1f);
+                        ImGui.dragFloat("Y Rotation", rotationY, 1f);
+                        ImGui.dragFloat("Z Rotation", rotationZ, 1f);
+
+                        transformations.setRotation(rotationX[0], rotationY[0], rotationZ[0]);
                     }
+                    Material material = object.getMaterial();
 
-                    float[] color = new float[]{object.getColor().x, object.getColor().y, object.getColor().z};
+                    Vector3f materialColor = material.getColor();
+                    float[] color = new float[]{materialColor.x, materialColor.y, materialColor.z};
 
-                    ImGui.colorPicker3("Color", color);
-                    object.setColor(color[0], color[1], color[2]);
+                    ImGui.colorPicker3("Color", color,
+                            ImGuiColorEditFlags.NoSidePreview |
+                                    ImGuiColorEditFlags.NoSmallPreview |
+                                    ImGuiColorEditFlags.DisplayRGB |
+                                    ImGuiColorEditFlags.DisplayHex
+                    );
+
+                    material.setColor(color[0], color[1], color[2]);
+
+                    float[] emissiveStrength = new float[]{material.getEmissiveStrength()};
+                    ImGui.dragFloat("Emissive Strength", emissiveStrength, 0.01f);
+                    material.setEmissiveStrength(emissiveStrength[0]);
 
                     if (object instanceof ObjectWithResolution objectWithResolution) {
                         int[] resolution = new int[]{objectWithResolution.getResolution()};

@@ -169,6 +169,11 @@ public class ShaderProgram {
         GL20.glUniform1i(location, value);
     }
 
+    public void setFloat(String uniform, float value) {
+        int location = GL20.glGetUniformLocation(shaderProgram, uniform);
+        GL20.glUniform1f(location, value);
+    }
+
     public void bindTexture(String name, int texture) {
         int textureLocation = GL20.glGetUniformLocation(shaderProgram, name);
 

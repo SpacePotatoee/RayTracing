@@ -5,6 +5,8 @@ import imgui.flag.ImGuiInputTextFlags;
 import imgui.flag.ImGuiTabBarFlags;
 import imgui.type.ImString;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL13;
+import org.lwjgl.opengl.GL30;
 import sp.sponge.Sponge;
 import sp.sponge.render.imgui.AddObject;
 import sp.sponge.render.shader.ShaderProgram;
@@ -26,20 +28,25 @@ public class MainRenderer {
     private int fpsCounter = 0;
     private String currentFpsString = "";
     public final VertexBuffer mainVertexBuffer;
+    private final VertexBuffer screenBuffer;
     private final Window window;
     private final Camera camera;
     private final FrameBuffer postFramebuffer;
+    private FrameBuffer prevFrameBuffer;
     private final List<File> savedFiles = new ArrayList<>();
 
-//    private boolean initGroundPlane;
     private Square groundPlane;
+
+    private int numOfRenderedFrames;
 
     public MainRenderer () {
         updateTime = System.currentTimeMillis();
         this.mainVertexBuffer = new VertexBuffer(100000000, VertexBuffer.VertexDataType.POSITION_COLOR_NORMAL, true);
+        this.screenBuffer = new VertexBuffer(168, VertexBuffer.VertexDataType.POSITION_TEXTURE, false);
         this.window = Window.getWindow();
         this.camera = new Camera();
         this.postFramebuffer = new FrameBuffer(this.window.getWidth(), this.window.getHeight());
+        this.prevFrameBuffer = new FrameBuffer(this.window.getWidth(), this.window.getHeight());
     }
 
     public void renderScene() {
@@ -50,30 +57,72 @@ public class MainRenderer {
         camera.updateCamera();
 
         Vector<SceneObject> sceneObjects = SceneManager.getSceneObjects();
-        GL11.glEnable(GL11.GL_CULL_FACE);
-        GL11.glCullFace(GL11.GL_BACK);
+//        GL11.glEnable(GL11.GL_CULL_FACE);
+//        GL11.glCullFace(GL11.GL_BACK);
         for (SceneObject object : sceneObjects) {
             Mesh mesh = object.getMesh();
             if (mesh != null) {
-                mesh.drawMesh(this.mainVertexBuffer);
+                this.mainVertexBuffer.addMesh(object.getTransformMatrix(), mesh);
             }
         }
-
-        this.postFramebuffer.bind();
-        OpenGLSystem.enableDepthTest();
-        this.mainVertexBuffer.bind();
-        ShaderRegistry.defaultShader.bind();
+//
+//        this.postFramebuffer.bind();
+//        OpenGLSystem.enableDepthTest();
+//        this.mainVertexBuffer.bind();
+//        ShaderRegistry.defaultShader.bind();
         ShaderRegistry.defaultShader.setMatrices(this.camera.getModelViewMatrix(), this.camera.getProjectionMatrix());
-
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-        this.mainVertexBuffer.drawElements();
-        FrameBuffer.unbind();
+//
+//        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+//        this.mainVertexBuffer.drawElements();
+//        FrameBuffer.unbind();
 
 //        ShaderProgram.unbind();
 //        VertexBuffer.unbind();
 
+        if (!this.camera.hasMoved()) {
+            numOfRenderedFrames++;
+        } else {
+            numOfRenderedFrames = 0;
+        }
 
-        this.postFramebuffer.draw();
+        this.screenBuffer.vertex(1.0f, 1.0f, 0.0f).texture(1.0f, 1.0f).next();
+        this.screenBuffer.vertex(-1.0f, 1.0f, 0.0f).texture(0.0f, 1.0f).next();
+        this.screenBuffer.vertex(-1.0f, -1.0f, 0.0f).texture(0.0f, 0.0f).next();
+
+        this.screenBuffer.vertex(1.0f, 1.0f, 0.0f).texture(1.0f, 1.0f).next();
+        this.screenBuffer.vertex(-1.0f, -1.0f, 0.0f).texture(0.0f, 0.0f).next();
+        this.screenBuffer.vertex(1.0f, -1.0f, 0.0f).texture(1.0f, 0.0f).next();
+
+        OpenGLSystem.disableDepthTest();
+
+        ShaderRegistry.postShader.bind();
+        this.screenBuffer.bind();
+        VertexBuffer buffer = Sponge.getInstance().renderer.mainVertexBuffer;
+        buffer.bindRayTracingBuffers();
+        ShaderRegistry.postShader.setInt("Frame", numOfRenderedFrames);
+        ShaderRegistry.postShader.setInt("NumOfMeshes", buffer.getNumOfMeshes());
+
+        GL13.glActiveTexture(GL13.GL_TEXTURE0);
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.prevFrameBuffer.getColorTexture());
+        ShaderRegistry.postShader.bindTexture("PrevSampler", 0);
+
+        this.screenBuffer.drawElements();
+
+        ShaderProgram.unbind();
+        VertexBuffer.unbind();
+        buffer.endRayTRacing();
+        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+
+
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, 0);
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, this.prevFrameBuffer.getFrameBuffer());
+        GL30.glBlitFramebuffer(0, 0, this.window.getWidth(), this.window.getHeight(),
+                                0, 0, this.window.getWidth(), this.window.getHeight(),
+                                GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT, GL11.GL_NEAREST);
+
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, 0);
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
+//        this.postFramebuffer.draw();
 
 
 
@@ -189,7 +238,7 @@ public class MainRenderer {
 
             transformation.rotate(-90f, 0, 0);
             transformation.scale(10f);
-            this.groundPlane.setColor(0.36078431372f, 0.50588235294f, 0.61960784313f);
+            this.groundPlane.getMaterial().setColor(0.36078431372f, 0.50588235294f, 0.61960784313f);
             SceneManager.addObject(this.groundPlane);
         }
 

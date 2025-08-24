@@ -17,7 +17,7 @@ public class Square extends SceneObject {
 
     @Override
     public Mesh createMesh() {
-        Mesh mesh = new Mesh(6, 2);
+        Mesh mesh = new Mesh(2);
 
         Mesh.Vertex v0 = new Mesh.Vertex(0.5f, 0.5f, 0.0f,0.0f, 0.0f, 1.0f);
         Mesh.Vertex v1 = new Mesh.Vertex(-0.5f, 0.5f, 0.0f,0.0f, 0.0f, 1.0f);

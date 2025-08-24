@@ -21,7 +21,7 @@ public class Circle extends SceneObject implements ObjectWithResolution {
 
     @Override
     public Mesh createMesh() {
-        Mesh mesh = new Mesh(this.resolution * 3, this.resolution);
+        Mesh mesh = new Mesh(this.resolution);
 
         double radius = 0.5f;
         for (int i = 0; i < this.resolution; i++) {

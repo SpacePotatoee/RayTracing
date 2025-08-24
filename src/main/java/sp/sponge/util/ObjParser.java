@@ -88,7 +88,7 @@ public class ObjParser {
                 }
             }
 
-            Mesh mesh = new Mesh(vertices.size(), faces.size());
+            Mesh mesh = new Mesh(faces.size());
 
             for (Mesh.Face face : faces) {
                 mesh.addFace(face);

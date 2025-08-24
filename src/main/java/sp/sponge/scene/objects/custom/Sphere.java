@@ -19,7 +19,7 @@ public class Sphere extends SceneObject implements ObjectWithResolution {
 
     @Override
     public Mesh createMesh() {
-        Mesh mesh = new Mesh(60, 20);
+        Mesh mesh = new Mesh(20);
         double radius = 0.5f;
 
         double phi = 1.618033988749; //Golden ratio

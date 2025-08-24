@@ -2,7 +2,6 @@ package sp.sponge.render;
 
 import imgui.ImGui;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import sp.sponge.input.Input;
 import sp.sponge.input.keybind.Keybinds;
@@ -18,6 +17,7 @@ public class Camera {
 
     private final Matrix4f projectionMatrix = new Matrix4f().identity();
     private final Matrix4f invProjectionMatrix = new Matrix4f().identity();
+    private boolean moved;
 
     public Camera() {
         this.fov = 45;
@@ -30,36 +30,42 @@ public class Camera {
     }
 
     public void updateCamera() {
+        this.moved = false;
         if (ImGui.getIO().getWantTextInput()) {
             return;
         }
         float speed = 0.02f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {
+            this.moved = true;
             this.position.subtractInternal(rotation.mul(speed));
         }
         if (Keybinds.BACKWARDS.isPressed()) {
+            this.moved = true;
             this.position.addInternal(rotation.mul(speed));
         }
         if (Keybinds.LEFT.isPressed()) {
+            this.moved = true;
             this.position.subtractInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
         }
         if (Keybinds.RIGHT.isPressed()) {
+            this.moved = true;
             this.position.addInternal(rotation.rotateY((float) Math.toRadians(90)).mul(speed));
         }
 
         if (Keybinds.SPACE.isPressed()) {
+            this.moved = true;
             this.position.y += speed;
         }
         if (Keybinds.SHIFT.isPressed()) {
+            this.moved = true;
             this.position.y -= speed;
         }
 
         Window window = Window.getWindow();
         Input input = window.getInput();
         if (Keybinds.RIGHT_CLICK.isPressed()) {
-
-
+            this.moved = true;
             float width = window.getWidth();
             float height = window.getHeight();
 
@@ -84,6 +90,10 @@ public class Camera {
 
         this.modelViewMatrix.invert(this.invModelViewMatrix);
         this.projectionMatrix.invertPerspective(this.invProjectionMatrix);
+    }
+
+    public boolean hasMoved() {
+        return this.moved;
     }
 
     private Vec3f getRotationVector() {

@@ -1,9 +1,6 @@
 package sp.sponge.render;
 
 import org.lwjgl.opengl.*;
-import sp.sponge.Sponge;
-import sp.sponge.render.shader.ShaderProgram;
-import sp.sponge.render.shader.ShaderRegistry;
 
 import java.nio.ByteBuffer;
 
@@ -15,12 +12,10 @@ public class FrameBuffer {
     private int colorTexture;
     private int depthTexture;
 
-    private final VertexBuffer screenBuffer;
-
     public FrameBuffer(int width, int height) {
         this.width = width;
         this.height = height;
-        this.screenBuffer = new VertexBuffer(168, VertexBuffer.VertexDataType.POSITION_TEXTURE, false);
+
         this.init();
     }
 
@@ -69,37 +64,12 @@ public class FrameBuffer {
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
     }
 
-    public void draw() {
-        OpenGLSystem.disableDepthTest();
-        // 0 1 2
-        // 0 2 3
-        this.screenBuffer.vertex(1.0f, 1.0f, 0.0f).texture(1.0f, 1.0f).next();
-        this.screenBuffer.vertex(-1.0f, 1.0f, 0.0f).texture(0.0f, 1.0f).next();
-        this.screenBuffer.vertex(-1.0f, -1.0f, 0.0f).texture(0.0f, 0.0f).next();
+    public int getFrameBuffer() {
+        return this.frameBuffer;
+    }
 
-        this.screenBuffer.vertex(1.0f, 1.0f, 0.0f).texture(1.0f, 1.0f).next();
-        this.screenBuffer.vertex(-1.0f, -1.0f, 0.0f).texture(0.0f, 0.0f).next();
-        this.screenBuffer.vertex(1.0f, -1.0f, 0.0f).texture(1.0f, 0.0f).next();
-
-        ShaderRegistry.postShader.bind();
-        this.screenBuffer.bind();
-        VertexBuffer buffer = Sponge.getInstance().renderer.mainVertexBuffer;
-        buffer.bindRayTracingBuffers();
-        ShaderRegistry.postShader.setInt("NumOfTriangles", buffer.getNumOfTriangles());
-        GL13.glActiveTexture(GL13.GL_TEXTURE0);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.colorTexture);
-        ShaderRegistry.postShader.bindTexture("DiffuseTextureSampler", 0);
-
-        GL13.glActiveTexture(GL13.GL_TEXTURE1);
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.depthTexture);
-        ShaderRegistry.postShader.bindTexture("DiffuseDepthSampler", 1);
-
-        this.screenBuffer.drawElements();
-
-        ShaderProgram.unbind();
-        VertexBuffer.unbind();
-        buffer.endRayTRacing();
-        GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
+    public int getColorTexture() {
+        return this.colorTexture;
     }
 
 }

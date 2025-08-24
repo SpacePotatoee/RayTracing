@@ -1,10 +1,12 @@
 package sp.sponge.scene;
 
 import com.google.gson.*;
+import org.joml.Vector3f;
 import sp.sponge.Sponge;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.registries.Registries;
 import sp.sponge.scene.registries.custom.object.ObjectType;
+import sp.sponge.util.Material;
 import sp.sponge.util.Transformation;
 
 import java.io.*;
@@ -41,11 +43,13 @@ public class SceneManager {
                         JsonObject jsonObject = object.getAsJsonObject();
                         String name = jsonObject.get("name").getAsString();
                         Transformation transformation = GSON.fromJson(jsonObject.get("transformation"), Transformation.class);
+                        Material material = GSON.fromJson(jsonObject.get("material"), Material.class);
 
                         ObjectType<? extends SceneObject> objectType = Registries.SceneObjectRegistry.get(name);
 
-                        newSceneObjects.add(objectType.create(transformation, false));
-//                        System.out.println(transformations);
+                        SceneObject sceneObject = objectType.create(transformation, false);
+                        sceneObject.getMaterial().copyValues(material);
+                        newSceneObjects.add(sceneObject);
                     }
                     sceneObjects = new Vector<>(newSceneObjects);
                     sceneObjects.add(Sponge.getInstance().renderer.getGroundPlane());

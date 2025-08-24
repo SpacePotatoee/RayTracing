@@ -4,6 +4,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
 import sp.sponge.scene.registries.custom.object.ObjectType;
+import sp.sponge.util.Material;
 import sp.sponge.util.Transformation;
 
 public abstract class SceneObject {
@@ -11,6 +12,7 @@ public abstract class SceneObject {
     protected transient Mesh mesh;
     protected boolean fixed;
     protected Transformation transformation;
+    protected final Material material;
     protected Vector3f color;
     private boolean dirty;
 
@@ -23,6 +25,7 @@ public abstract class SceneObject {
         this.fixed = fixed;
         this.transformation = transformation;
         this.color = new Vector3f(0.5f);
+        this.material = new Material();
     }
 
     public abstract Mesh createMesh();
@@ -33,20 +36,12 @@ public abstract class SceneObject {
             this.clean();
         }
 
-        this.mesh.setParameters(this);
+        this.mesh.setMaterial(this.material);
         return this.mesh;
     }
 
-    public void setColor(Vector3f color) {
-        this.color = color;
-    }
-
-    public void setColor(float red, float green, float blue) {
-        this.color = new Vector3f(red, green, blue);
-    }
-
-    public Vector3f getColor() {
-        return color;
+    public Material getMaterial() {
+        return material;
     }
 
     public Transformation getTransformations() {
