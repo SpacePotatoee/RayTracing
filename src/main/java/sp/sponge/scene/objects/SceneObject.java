@@ -4,8 +4,8 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import sp.sponge.render.Mesh;
 import sp.sponge.scene.registries.custom.object.ObjectType;
-import sp.sponge.util.Material;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Material;
+import sp.sponge.util.objects.Transformation;
 
 public abstract class SceneObject {
     protected final String name;

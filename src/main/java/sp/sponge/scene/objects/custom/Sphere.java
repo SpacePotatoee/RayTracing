@@ -4,7 +4,7 @@ import sp.sponge.render.Mesh;
 import sp.sponge.scene.objects.ObjectWithResolution;
 import sp.sponge.scene.objects.Objects;
 import sp.sponge.scene.objects.SceneObject;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Transformation;
 
 public class Sphere extends SceneObject implements ObjectWithResolution {
     private int resolution = 1;

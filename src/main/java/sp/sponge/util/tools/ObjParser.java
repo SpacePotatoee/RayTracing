@@ -1,4 +1,4 @@
-package sp.sponge.util;
+package sp.sponge.util.tools;
 
 import sp.sponge.Sponge;
 import sp.sponge.render.Mesh;

@@ -1,8 +1,7 @@
 package sp.sponge.render;
 
 import org.joml.Vector3f;
-import sp.sponge.scene.objects.SceneObject;
-import sp.sponge.util.Material;
+import sp.sponge.util.objects.Material;
 
 public class Mesh {
     private final Face[] faces;

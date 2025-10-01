@@ -3,7 +3,7 @@ package sp.sponge.scene.objects.custom;
 import sp.sponge.render.Mesh;
 import sp.sponge.scene.objects.Objects;
 import sp.sponge.scene.objects.SceneObject;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Transformation;
 
 public class Square extends SceneObject {
 

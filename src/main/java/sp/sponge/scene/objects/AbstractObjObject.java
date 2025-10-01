@@ -2,8 +2,8 @@ package sp.sponge.scene.objects;
 
 import sp.sponge.render.Mesh;
 import sp.sponge.scene.registries.custom.object.ObjectType;
-import sp.sponge.util.ObjParser;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.tools.ObjParser;
+import sp.sponge.util.objects.Transformation;
 
 public class AbstractObjObject extends SceneObject {
     private final String path;

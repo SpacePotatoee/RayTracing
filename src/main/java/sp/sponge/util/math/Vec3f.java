@@ -1,4 +1,4 @@
-package sp.sponge.util;
+package sp.sponge.util.math;
 
 import org.joml.Math;
 import org.joml.Vector3f;

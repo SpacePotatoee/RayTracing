@@ -14,7 +14,7 @@ import sp.sponge.render.shader.ShaderRegistry;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.objects.custom.Square;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Transformation;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

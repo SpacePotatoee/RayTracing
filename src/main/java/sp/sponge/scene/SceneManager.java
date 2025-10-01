@@ -1,13 +1,12 @@
 package sp.sponge.scene;
 
 import com.google.gson.*;
-import org.joml.Vector3f;
 import sp.sponge.Sponge;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.registries.Registries;
 import sp.sponge.scene.registries.custom.object.ObjectType;
-import sp.sponge.util.Material;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Material;
+import sp.sponge.util.objects.Transformation;
 
 import java.io.*;
 import java.util.Vector;

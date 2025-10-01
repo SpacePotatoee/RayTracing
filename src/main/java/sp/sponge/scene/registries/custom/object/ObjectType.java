@@ -1,7 +1,7 @@
 package sp.sponge.scene.registries.custom.object;
 
 import sp.sponge.scene.objects.SceneObject;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Transformation;
 
 public class ObjectType<T extends SceneObject> {
     private final String name;

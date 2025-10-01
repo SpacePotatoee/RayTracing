@@ -171,7 +171,7 @@ vec3 bounceRays(in Ray ray, int rng) {
             ray.hit = false;
             ray.dir = randomHemispherePoint(hashwithoutsine31(texCoord.x * texCoord.y *rng * (i+1)).x, ray.material.normal);
             ray.origin = ray.pos;
-            vec3 light = (vec3(1.0) * ray.material.emissionStrength) / NUMBER_OF_BOUNCES;
+            vec3 light = (ray.material.color * ray.material.emissionStrength) / NUMBER_OF_BOUNCES;
             totalLight += light * color;
             color *= ray.material.color;
         } else {
@@ -204,15 +204,6 @@ void main() {
 
     float weight = 1.0 / (Frame + 1);
     vec3 outputColor = prevColor * (1.0 - weight) + newFrame * weight;
-
-
-//    if (ray.hit) {
-//        color.rgb = vec3(color);
-//    } else {
-//        if (depth >= 1.0) {
-//            color.rgb = vec3(0.5294117647, 0.80784313725, 0.92156862745);
-//        }
-//    }
 
     fragColor = vec4(outputColor, 1.0);
 }

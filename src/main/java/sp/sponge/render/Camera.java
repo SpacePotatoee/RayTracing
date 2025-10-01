@@ -5,7 +5,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import sp.sponge.input.Input;
 import sp.sponge.input.keybind.Keybinds;
-import sp.sponge.util.Vec3f;
+import sp.sponge.util.math.Vec3f;
 
 public class Camera {
     private float fov;

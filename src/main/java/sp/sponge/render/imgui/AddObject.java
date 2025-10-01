@@ -2,15 +2,14 @@ package sp.sponge.render.imgui;
 
 import imgui.ImGui;
 import imgui.flag.ImGuiColorEditFlags;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.ObjectWithResolution;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.registries.Registries;
 import sp.sponge.scene.registries.custom.object.ObjectType;
-import sp.sponge.util.Material;
-import sp.sponge.util.Transformation;
+import sp.sponge.util.objects.Material;
+import sp.sponge.util.objects.Transformation;
 
 public class AddObject {
     private static String objectName;
