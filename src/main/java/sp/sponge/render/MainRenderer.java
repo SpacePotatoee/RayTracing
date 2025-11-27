@@ -97,10 +97,10 @@ public class MainRenderer {
 
         ShaderRegistry.postShader.bind();
         this.screenBuffer.bind();
-        VertexBuffer buffer = Sponge.getInstance().renderer.mainVertexBuffer;
-        buffer.bindRayTracingBuffers();
+        mainVertexBuffer.bindRayTracingBuffers();
+//        System.out.println(numOfRenderedFrames);
         ShaderRegistry.postShader.setInt("Frame", numOfRenderedFrames);
-        ShaderRegistry.postShader.setInt("NumOfMeshes", buffer.getNumOfMeshes());
+        ShaderRegistry.postShader.setInt("NumOfMeshes", mainVertexBuffer.getNumOfMeshes());
 
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, this.prevFrameBuffer.getColorTexture());
@@ -110,7 +110,7 @@ public class MainRenderer {
 
         ShaderProgram.unbind();
         VertexBuffer.unbind();
-        buffer.endRayTRacing();
+        mainVertexBuffer.endRayTRacing();
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, 0);
 
 

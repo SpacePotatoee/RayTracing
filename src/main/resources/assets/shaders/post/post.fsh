@@ -9,7 +9,7 @@ out vec4 fragColor;
 
 const float PI = 3.14159265359;
 const int NUMBER_OF_BOUNCES = 9;
-const int RAYS_PER_PIXEL = 3;
+const int RAYS_PER_PIXEL = 2;
 
 layout (std140) uniform Camera {
     mat4 projMat;
@@ -92,6 +92,7 @@ void copyHitToRay(inout Ray ray, in HitInfo info) {
     ray.material.normal = info.normal;
 }
 
+//https://www.youtube.com/watch?v=XgUhgSlQvic
 HitInfo triangleIntersection(in Ray ray, in Triangle tri) {
     HitInfo info;
     info.pos = vec3(999999);
@@ -169,7 +170,7 @@ vec3 bounceRays(in Ray ray, int rng) {
 
         if (ray.hit) {
             ray.hit = false;
-            ray.dir = randomHemispherePoint(hashwithoutsine31(texCoord.x * texCoord.y *rng * (i+1)).x, ray.material.normal);
+            ray.dir = randomHemispherePoint(hashwithoutsine31((texCoord.x * 62.5412 * texCoord.y * 38.61453) + rng + (i) * 83.53512).x, ray.material.normal);
             ray.origin = ray.pos;
             vec3 light = (ray.material.color * ray.material.emissionStrength) / NUMBER_OF_BOUNCES;
             totalLight += light * color;
@@ -197,12 +198,14 @@ void main() {
         HitMaterial material;
         ray.material = material;
 
+//        newFrame += hashwithoutsine31((texCoord.x * 62.5412 * texCoord.y * 38.61453) + Frame * 83.53512).x;
         newFrame += bounceRays(ray, i + 1 + Frame);
     }
 
-    newFrame = newFrame / RAYS_PER_PIXEL;
+    newFrame = clamp(newFrame / RAYS_PER_PIXEL, vec3(-1), vec3(1));
 
     float weight = 1.0 / (Frame + 1);
+//    vec3 outputColor = mix(newFrame, prevColor, 0.99);
     vec3 outputColor = prevColor * (1.0 - weight) + newFrame * weight;
 
     fragColor = vec4(outputColor, 1.0);
