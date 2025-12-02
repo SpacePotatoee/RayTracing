@@ -1,10 +1,7 @@
 package sp.sponge;
 
-import sp.sponge.input.keybind.Keybinds;
 import sp.sponge.render.MainRenderer;
 import sp.sponge.render.Window;
-import sp.sponge.render.shader.ShaderRegistry;
-import sp.sponge.scene.objects.Objects;
 
 import java.io.File;
 import java.util.logging.Logger;
@@ -12,27 +9,18 @@ import java.util.logging.Logger;
 public class Sponge {
     private static Sponge INSTANCE;
     public final Logger SPONGE_LOGGER;
-    public final MainRenderer renderer;
+    private final MainRenderer mainRenderer;
     private RunFiles runFiles;
 
     public Sponge() {
         INSTANCE = this;
-
-        this.renderer = new MainRenderer();
         this.SPONGE_LOGGER = Logger.getLogger("sponge");
-        ShaderRegistry.registerShaders();
-        Objects.registerObjects();
-        Keybinds.registerKeybinds();
+        this.mainRenderer = new MainRenderer();
     }
 
     public void mainLoop() {
         Window window = Window.getWindow();
-
-        this.renderer.renderScene();
-
-        window.startImGuiFrame();
-        this.renderer.renderImGui();
-        window.endImGuiFrame();
+        window.pollEvents();
     }
 
     public static Sponge getInstance() {
@@ -50,12 +38,20 @@ public class Sponge {
         this.runFiles = new RunFiles(runFile, scenesFile);
     }
 
+    public MainRenderer getMainRenderer() {
+        return mainRenderer;
+    }
+
     public RunFiles getRunFiles() {
         return this.runFiles;
     }
 
     public Logger getLogger() {
         return this.SPONGE_LOGGER;
+    }
+
+    public void free() {
+        this.mainRenderer.close();
     }
 
     public record RunFiles(File runFile, File scenesFile){}
