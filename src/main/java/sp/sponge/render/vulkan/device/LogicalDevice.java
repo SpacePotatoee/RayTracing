@@ -3,7 +3,7 @@ package sp.sponge.render.vulkan.device;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
-import sp.sponge.util.VulkanUtils;
+import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -28,8 +28,18 @@ public class LogicalDevice implements AutoCloseable {
             }
 
             PointerBuffer enabledExtensinsPtr = createRequiredExtensions(physicalDevice, stack);
+
+            VkPhysicalDeviceVulkan13Features features = VkPhysicalDeviceVulkan13Features.calloc(stack)
+                    .sType$Default()
+                    .dynamicRendering(true)
+                    .synchronization2(true);
+
+            VkPhysicalDeviceFeatures2 features2 = VkPhysicalDeviceFeatures2.calloc(stack).sType$Default();
+            features2.pNext(features);
+
             VkDeviceCreateInfo deviceCreateInfo = VkDeviceCreateInfo.calloc(stack)
                     .sType$Default()
+                    .pNext(features2.address())
                     .pQueueCreateInfos(info)
                     .ppEnabledExtensionNames(enabledExtensinsPtr);
 

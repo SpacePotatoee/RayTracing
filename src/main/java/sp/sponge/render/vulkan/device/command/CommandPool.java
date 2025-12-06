@@ -5,7 +5,7 @@ import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkCommandPoolCreateInfo;
 import sp.sponge.Sponge;
 import sp.sponge.render.vulkan.VulkanCtx;
-import sp.sponge.util.VulkanUtils;
+import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.LongBuffer;
 

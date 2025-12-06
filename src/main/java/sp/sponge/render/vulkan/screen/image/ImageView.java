@@ -2,9 +2,10 @@ package sp.sponge.render.vulkan.screen.image;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VkImageSubresourceRange;
 import org.lwjgl.vulkan.VkImageViewCreateInfo;
 import sp.sponge.render.vulkan.device.LogicalDevice;
-import sp.sponge.util.VulkanUtils;
+import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.LongBuffer;
 
@@ -14,6 +15,7 @@ public class ImageView implements AutoCloseable {
     private final int mipLevels;
     private final long imageHandle;
     private final long vkImageViewHandle;
+    private VkImageSubresourceRange subresourceRange;
 
     private ImageView(LogicalDevice logicalDevice, long imageHandle, int aspectMask, int mipLevels, int viewType, int format, int baseArrayLayer, int layerCount) {
         this.logicalDevice = logicalDevice;
@@ -28,7 +30,7 @@ public class ImageView implements AutoCloseable {
                     .image(imageHandle)
                     .viewType(viewType)
                     .format(format)
-                    .subresourceRange(vkImageSubresourceRange -> vkImageSubresourceRange
+                    .subresourceRange(vkImageSubresourceRange -> subresourceRange = vkImageSubresourceRange
                             .aspectMask(aspectMask)
                             .baseMipLevel(0)
                             .levelCount(mipLevels)
@@ -45,6 +47,10 @@ public class ImageView implements AutoCloseable {
         }
     }
 
+    public VkImageSubresourceRange getSubresourceRange() {
+        return subresourceRange;
+    }
+
     public int getAspectMask() {
         return aspectMask;
     }
@@ -55,6 +61,10 @@ public class ImageView implements AutoCloseable {
 
     public long getVkImageViewHandle() {
         return vkImageViewHandle;
+    }
+
+    public long getImageHandle() {
+        return imageHandle;
     }
 
     @Override
@@ -71,6 +81,7 @@ public class ImageView implements AutoCloseable {
         int layerCount;
 
         public ImageViewBuilder() {
+            this.aspectMask = VK10.VK_IMAGE_ASPECT_COLOR_BIT;
             this.baseArrayLayer = 0;
             this.layerCount = 1;
             this.mipLevels = 1;

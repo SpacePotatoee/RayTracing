@@ -1,11 +1,14 @@
 package sp.sponge.render.vulkan.screen;
 
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.Window;
 import sp.sponge.render.vulkan.device.LogicalDevice;
+import sp.sponge.render.vulkan.device.Queue;
 import sp.sponge.render.vulkan.screen.image.ImageView;
-import sp.sponge.util.VulkanUtils;
+import sp.sponge.render.vulkan.VulkanUtils;
+import sp.sponge.render.vulkan.sync.Semaphore;
 
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
@@ -16,7 +19,7 @@ public class SwapChain implements AutoCloseable {
     private final long swapChainHandle;
     private final ImageView[] imageViews;
     private final int numOfImages;
-    private final VkExtent2D extent2D;
+    private VkExtent2D extent2D;
 
     public SwapChain(Window window, LogicalDevice logicalDevice, Surface surface, int numOfImages, boolean vsync) {
         this.logicalDevice = logicalDevice;
@@ -52,6 +55,47 @@ public class SwapChain implements AutoCloseable {
             this.imageViews = createImageViews(stack, logicalDevice, surfaceFormat.imageFormat());
             this.numOfImages = this.imageViews.length;
 
+            this.extent2D = VkExtent2D.calloc(stack).set(this.extent2D);
+        }
+
+
+    }
+
+    public void presentImage(Queue.PresentQueue presentQueue, Semaphore semaphore, int imageIndex) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack)
+                    .sType$Default()
+                    .pWaitSemaphores(stack.longs(semaphore.getVkSemaphore()))
+                    .swapchainCount(1)
+                    .pSwapchains(stack.longs(this.swapChainHandle))
+                    .pImageIndices(stack.ints(imageIndex));
+
+            KHRSwapchain.vkQueuePresentKHR(presentQueue.getQueue(), presentInfo);
+        }
+    }
+
+    public int getNextImage(LogicalDevice logicalDevice, Semaphore semaphore) {
+        int imageIndex;
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer imagePtr = stack.mallocInt(1);
+            int error = KHRSwapchain.vkAcquireNextImageKHR(
+                    logicalDevice.getVkDevice(),
+                    this.swapChainHandle,
+                    ~0L,
+                    semaphore.getVkSemaphore(),
+                    MemoryUtil.NULL,
+                    imagePtr
+            );
+
+            switch (error) {
+                case KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR -> {
+                    return -1;
+                }
+                case KHRSwapchain.VK_SUBOPTIMAL_KHR, VK10.VK_SUCCESS -> imageIndex = imagePtr.get(0);
+                default -> throw new RuntimeException("Failed to get next image from the Swap Chain");
+            }
+
+            return imageIndex;
         }
     }
 
@@ -80,6 +124,7 @@ public class SwapChain implements AutoCloseable {
 
     private int calcNumOfImages(VkSurfaceCapabilitiesKHR surfaceCapabilities, int numOfImages) {
         int result;
+        System.out.println(surfaceCapabilities.minImageCount() + "======");
         if (surfaceCapabilities.maxImageCount() == 0) { //No limit
             result = Math.max(numOfImages, surfaceCapabilities.minImageCount());
         } else {
@@ -107,6 +152,23 @@ public class SwapChain implements AutoCloseable {
         }
 
         return result;
+    }
+
+
+    public long getSwapChainHandle() {
+        return swapChainHandle;
+    }
+
+    public ImageView[] getImageViews() {
+        return imageViews;
+    }
+
+    public int getNumOfImages() {
+        return numOfImages;
+    }
+
+    public VkExtent2D getExtent2D() {
+        return this.extent2D;
     }
 
     @Override

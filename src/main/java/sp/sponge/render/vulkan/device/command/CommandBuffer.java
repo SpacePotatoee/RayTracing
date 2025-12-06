@@ -6,7 +6,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import sp.sponge.Sponge;
 import sp.sponge.render.vulkan.VulkanCtx;
-import sp.sponge.util.VulkanUtils;
+import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.IntBuffer;
 
@@ -77,6 +77,20 @@ public class CommandBuffer {
         }
     }
 
+    public VkCommandBuffer getVkCommandBuffer() {
+        return vkCommandBuffer;
+    }
+
+    public void endRecording() {
+        VulkanUtils.check(
+                VK10.vkEndCommandBuffer(this.vkCommandBuffer),
+                "Failed to end Command Buffer"
+        );
+    }
+
+    public void reset() {
+        VK10.vkResetCommandBuffer(this.vkCommandBuffer, VK10.VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
+    }
 
     public void close(CommandPool pool) {
         VkDevice device = Sponge.getInstance().getMainRenderer().getVulkanCtx().getLogicalDevice().getVkDevice();

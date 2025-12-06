@@ -6,7 +6,7 @@ import org.lwjgl.vulkan.*;
 import sp.sponge.render.Window;
 import sp.sponge.render.vulkan.VulkanInstance;
 import sp.sponge.render.vulkan.device.PhysicalDevice;
-import sp.sponge.util.VulkanUtils;
+import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;

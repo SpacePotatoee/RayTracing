@@ -44,9 +44,10 @@ public class VulkanCtx {
     }
 
     public void free() {
-        this.physicalDevice.close();
-        this.logicalDevice.close();
+        this.swapChain.close();
         this.surface.close();
+        this.logicalDevice.close();
+        this.physicalDevice.close();
         this.vulkanInstance.close();
     }
 }

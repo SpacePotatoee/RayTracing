@@ -1,12 +1,11 @@
-package sp.sponge.render.vulkan.device.queue;
+package sp.sponge.render.vulkan.device;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.vulkan.KHRSurface;
-import org.lwjgl.vulkan.VK10;
-import org.lwjgl.vulkan.VkQueue;
-import org.lwjgl.vulkan.VkQueueFamilyProperties;
+import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.VulkanCtx;
+import sp.sponge.render.vulkan.sync.Fence;
+import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.IntBuffer;
 
@@ -15,7 +14,7 @@ public abstract class Queue {
     private final VkQueue queue;
 
     public Queue(VulkanCtx ctx, int queueIndex) {
-        this.queueFamilyIndex = getQueueFamilyIndex(ctx);
+        this.queueFamilyIndex = initQueueFamilyIndex(ctx);
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
             PointerBuffer queuePtr = stack.mallocPointer(1);
@@ -25,7 +24,28 @@ public abstract class Queue {
         }
     }
 
-    abstract int getQueueFamilyIndex(VulkanCtx ctx);
+    public void submit(VkCommandBufferSubmitInfo.Buffer commandBuffers, VkSemaphoreSubmitInfo.Buffer waitForSemaphores,
+                       VkSemaphoreSubmitInfo.Buffer signalSemaphores, Fence fence) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            VkSubmitInfo2.Buffer submitInfo = VkSubmitInfo2.calloc(1, stack)
+                    .sType$Default()
+                    .pCommandBufferInfos(commandBuffers)
+                    .pSignalSemaphoreInfos(signalSemaphores);
+
+            if (waitForSemaphores != null) {
+                submitInfo.pWaitSemaphoreInfos(waitForSemaphores);
+            }
+
+            long fenceHandle = fence != null ? fence.getVkFence() : VK10.VK_NULL_HANDLE;
+
+            VulkanUtils.check(
+                    VK13.vkQueueSubmit2(this.queue, submitInfo, fenceHandle),
+                    "Failed to submit Queue"
+            );
+        }
+    }
+
+    abstract int initQueueFamilyIndex(VulkanCtx ctx);
 
     public int getQueueFamilyIndex() {
         return queueFamilyIndex;
@@ -45,7 +65,7 @@ public abstract class Queue {
         }
 
         @Override
-        public int getQueueFamilyIndex(VulkanCtx ctx) {
+        public int initQueueFamilyIndex(VulkanCtx ctx) {
             int index = -1;
             VkQueueFamilyProperties.Buffer propertiesBuffer = ctx.getPhysicalDevice().getDeviceQueFamilyProperties();
             int numOfQueueFamilies = propertiesBuffer.capacity();
@@ -71,7 +91,7 @@ public abstract class Queue {
         }
 
         @Override
-        public int getQueueFamilyIndex(VulkanCtx ctx) {
+        public int initQueueFamilyIndex(VulkanCtx ctx) {
             int index = -1;
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 VkQueueFamilyProperties.Buffer propertiesBuffer = ctx.getPhysicalDevice().getDeviceQueFamilyProperties();

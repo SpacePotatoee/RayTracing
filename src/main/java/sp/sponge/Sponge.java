@@ -21,6 +21,8 @@ public class Sponge {
     public void mainLoop() {
         Window window = Window.getWindow();
         window.pollEvents();
+
+        this.mainRenderer.render();
     }
 
     public static Sponge getInstance() {

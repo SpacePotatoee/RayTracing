@@ -5,7 +5,6 @@ import org.lwjgl.glfw.GLFWVulkan;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import sp.sponge.Sponge;
-import sp.sponge.util.VulkanUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;

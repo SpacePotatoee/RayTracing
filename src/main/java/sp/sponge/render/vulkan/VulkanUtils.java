@@ -1,11 +1,9 @@
-package sp.sponge.util;
+package sp.sponge.render.vulkan;
 
-import org.lwjgl.vulkan.VK10;
-import org.lwjgl.vulkan.VK14;
-import org.lwjgl.vulkan.VkDebugUtilsMessengerCallbackDataEXT;
-import org.lwjgl.vulkan.VkDebugUtilsMessengerCreateInfoEXT;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.vulkan.*;
+import sp.sponge.render.vulkan.device.command.CommandBuffer;
 
-import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.logging.Logger;
 
@@ -13,6 +11,7 @@ import static org.lwjgl.vulkan.EXTDebugUtils.*;
 import static org.lwjgl.vulkan.VK10.VK_FALSE;
 
 public class VulkanUtils {
+    public static final int MAX_FRAMES_IN_FLIGHT = 2;
     private static OSType osType;
 
     public static final int MESSAGE_SEVERITY_BITMASK = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
@@ -29,6 +28,34 @@ public class VulkanUtils {
         }
 
         return osType;
+    }
+
+    public static void imageBarrier(MemoryStack stack, VkCommandBuffer buffer, long imageHandle,
+                                    int oldLayout, int newLayout, long srcStage, long dstStage, long srcAccess, long dstAccess, int aspectMask) {
+
+        VkImageMemoryBarrier2.Buffer imageBarrierBuffer = VkImageMemoryBarrier2.calloc(1, stack)
+                .sType$Default()
+                .oldLayout(oldLayout)
+                .newLayout(newLayout)
+                .srcStageMask(srcStage)
+                .dstStageMask(dstStage)
+                .srcAccessMask(srcAccess)
+                .dstAccessMask(dstAccess)
+                .srcQueueFamilyIndex(VK10.VK_QUEUE_FAMILY_IGNORED)
+                .dstQueueFamilyIndex(VK10.VK_QUEUE_FAMILY_IGNORED)
+                .image(imageHandle)
+                .subresourceRange(vkImageSubresourceRange -> vkImageSubresourceRange
+                        .aspectMask(aspectMask)
+                        .baseMipLevel(0)
+                        .levelCount(VK10.VK_REMAINING_MIP_LEVELS)
+                        .baseArrayLayer(0)
+                        .layerCount(VK10.VK_REMAINING_ARRAY_LAYERS));
+
+        VkDependencyInfo dependencyInfo = VkDependencyInfo.calloc(stack)
+                        .sType$Default()
+                        .pImageMemoryBarriers(imageBarrierBuffer);
+
+        VK13.vkCmdPipelineBarrier2(buffer, dependencyInfo);
     }
 
     public static VkDebugUtilsMessengerCreateInfoEXT createDebugCallBack(Logger logger) {
