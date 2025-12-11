@@ -26,7 +26,7 @@ public class Fence {
         }
     }
 
-    public void cleanUp(VulkanCtx ctx) {
+    public void close(VulkanCtx ctx) {
         VK10.vkDestroyFence(ctx.getLogicalDevice().getVkDevice(), this.vkFence, null);
     }
 

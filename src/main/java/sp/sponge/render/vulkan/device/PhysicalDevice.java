@@ -118,8 +118,8 @@ public class PhysicalDevice implements AutoCloseable {
                 throw new RuntimeException("No Graphics devices could be found");
             }
 
-            return mainPhysicalDevice;
         }
+        return mainPhysicalDevice;
 
     }
 

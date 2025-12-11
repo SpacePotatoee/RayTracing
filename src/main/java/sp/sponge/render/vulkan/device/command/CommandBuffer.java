@@ -7,6 +7,8 @@ import org.lwjgl.vulkan.*;
 import sp.sponge.Sponge;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
+import sp.sponge.render.vulkan.device.Queue;
+import sp.sponge.render.vulkan.sync.Fence;
 
 import java.nio.IntBuffer;
 
@@ -77,6 +79,19 @@ public class CommandBuffer {
         }
     }
 
+    public void submitAndWait(VulkanCtx ctx, Queue queue) {
+        Fence fence = new Fence(ctx, true);
+        fence.reset(ctx);
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            VkCommandBufferSubmitInfo.Buffer submitInfo = VkCommandBufferSubmitInfo.calloc(1, stack)
+                    .sType$Default()
+                    .commandBuffer(this.vkCommandBuffer);
+            queue.submit(submitInfo, null, null, fence);
+        }
+        fence.waitForFence(ctx);
+        fence.close(ctx);
+    }
+
     public VkCommandBuffer getVkCommandBuffer() {
         return vkCommandBuffer;
     }
@@ -92,9 +107,8 @@ public class CommandBuffer {
         VK10.vkResetCommandBuffer(this.vkCommandBuffer, VK10.VK_COMMAND_BUFFER_RESET_RELEASE_RESOURCES_BIT);
     }
 
-    public void close(CommandPool pool) {
-        VkDevice device = Sponge.getInstance().getMainRenderer().getVulkanCtx().getLogicalDevice().getVkDevice();
-        VK10.vkFreeCommandBuffers(device, pool.getCommandPoolHandle(), this.vkCommandBuffer);
+    public void close(VulkanCtx ctx, CommandPool pool) {
+        VK10.vkFreeCommandBuffers(ctx.getLogicalDevice().getVkDevice(), pool.getCommandPoolHandle(), this.vkCommandBuffer);
     }
 
 

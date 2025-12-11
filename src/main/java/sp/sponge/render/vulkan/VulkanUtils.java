@@ -30,6 +30,22 @@ public class VulkanUtils {
         return osType;
     }
 
+    public static int getMemoryType(VulkanCtx ctx, int memoryBits, int reqMask) {
+        int result = -1;
+        VkMemoryType.Buffer memoryTypes = ctx.getPhysicalDevice().getDeviceMemoryProperties().memoryTypes();
+        for (int i = 0; i < VK10.VK_MAX_MEMORY_TYPES; i++) {
+            if ((memoryBits & 1) == 1 && (memoryTypes.get(i).propertyFlags() & reqMask) == reqMask) {
+                result = i;
+                break;
+            }
+            memoryBits >>= 1;
+        }
+        if (result < 0) {
+            throw new RuntimeException("Failed to find memory type");
+        }
+        return result;
+    }
+
     public static void imageBarrier(MemoryStack stack, VkCommandBuffer buffer, long imageHandle,
                                     int oldLayout, int newLayout, long srcStage, long dstStage, long srcAccess, long dstAccess, int aspectMask) {
 

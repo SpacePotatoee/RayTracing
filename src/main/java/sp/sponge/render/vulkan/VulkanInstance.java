@@ -143,6 +143,7 @@ public class VulkanInstance implements AutoCloseable {
     }
 
     private List<String> getSupportedValidationLayers(Logger logger) {
+        List<String> supportedDesiredLayers;
         try (MemoryStack stack = MemoryStack.stackPush()) {
             List<String> supportedLayers = new ArrayList<>();
             IntBuffer numberOfSuppLayersArray = stack.callocInt(1);
@@ -159,7 +160,7 @@ public class VulkanInstance implements AutoCloseable {
                 supportedLayers.add(layerName);
             }
 
-            List<String> supportedDesiredLayers = new ArrayList<>();
+            supportedDesiredLayers = new ArrayList<>();
             for (String layer : desiredLayers) {
                 if (!supportedLayers.contains(layer)) {
                     logger.severe(layer + " is not supported");
@@ -169,13 +170,14 @@ public class VulkanInstance implements AutoCloseable {
                 supportedDesiredLayers.add(layer);
             }
 
-            return supportedDesiredLayers;
+
         }
+        return supportedDesiredLayers;
     }
 
     private List<String> getSupportedExtensionsLayers() {
+        List<String> supportedExtensions = new ArrayList<>();
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            List<String> supportedExtensions = new ArrayList<>();
             IntBuffer numberOfExtArray = stack.callocInt(1);
             VK10.vkEnumerateInstanceExtensionProperties((String) null, numberOfExtArray, null);
             int numberOfExtensions = numberOfExtArray.get(0);
@@ -190,8 +192,9 @@ public class VulkanInstance implements AutoCloseable {
                 supportedExtensions.add(layerName);
             }
 
-            return supportedExtensions;
+
         }
+        return supportedExtensions;
     }
 
     public VkInstance getInstance() {

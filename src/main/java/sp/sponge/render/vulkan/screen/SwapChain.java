@@ -27,7 +27,7 @@ public class SwapChain implements AutoCloseable {
             VkSurfaceCapabilitiesKHR surfaceCapabilities = surface.getSurfaceCapabilities();
 
             int minImageCount = calcNumOfImages(surfaceCapabilities, numOfImages);
-            this.extent2D = calcExtent(window, surfaceCapabilities, stack);
+            this.extent2D = calcExtent(window, surfaceCapabilities);
 
             Surface.SurfaceFormat surfaceFormat = surface.getSurfaceFormat();
             VkSwapchainCreateInfoKHR createInfo = VkSwapchainCreateInfoKHR.calloc(stack)
@@ -54,8 +54,6 @@ public class SwapChain implements AutoCloseable {
             this.swapChainHandle = swapChainPtr.get(0);
             this.imageViews = createImageViews(stack, logicalDevice, surfaceFormat.imageFormat());
             this.numOfImages = this.imageViews.length;
-
-            this.extent2D = VkExtent2D.calloc(stack).set(this.extent2D);
         }
 
 
@@ -95,8 +93,8 @@ public class SwapChain implements AutoCloseable {
                 default -> throw new RuntimeException("Failed to get next image from the Swap Chain");
             }
 
-            return imageIndex;
         }
+        return imageIndex;
     }
 
     private ImageView[] createImageViews(MemoryStack stack, LogicalDevice logicalDevice, int format) {
@@ -124,7 +122,6 @@ public class SwapChain implements AutoCloseable {
 
     private int calcNumOfImages(VkSurfaceCapabilitiesKHR surfaceCapabilities, int numOfImages) {
         int result;
-        System.out.println(surfaceCapabilities.minImageCount() + "======");
         if (surfaceCapabilities.maxImageCount() == 0) { //No limit
             result = Math.max(numOfImages, surfaceCapabilities.minImageCount());
         } else {
@@ -135,8 +132,8 @@ public class SwapChain implements AutoCloseable {
     }
 
 
-    private static VkExtent2D calcExtent(Window window, VkSurfaceCapabilitiesKHR surfaceCapabilities, MemoryStack stack) {
-        VkExtent2D result = VkExtent2D.calloc(stack);
+    private static VkExtent2D calcExtent(Window window, VkSurfaceCapabilitiesKHR surfaceCapabilities) {
+        VkExtent2D result = VkExtent2D.calloc();
 
         if (surfaceCapabilities.currentExtent().width() == 0xFFFFFFFF) {
             //No extent was set
