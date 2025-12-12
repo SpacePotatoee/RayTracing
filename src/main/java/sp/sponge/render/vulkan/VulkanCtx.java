@@ -12,8 +12,8 @@ public class VulkanCtx {
     private final VulkanInstance vulkanInstance;
     private final PhysicalDevice physicalDevice;
     private final LogicalDevice logicalDevice;
-    private final Surface surface;
-    private final SwapChain swapChain;
+    private Surface surface;
+    private SwapChain swapChain;
     private final PipelineCache pipelineCache;
 
     public VulkanCtx() {
@@ -48,6 +48,15 @@ public class VulkanCtx {
 
     public PhysicalDevice getPhysicalDevice() {
         return physicalDevice;
+    }
+
+    public void resize() {
+        this.swapChain.close();
+        this.surface.close();
+
+        Window window = Window.getWindow();
+        this.surface = new Surface(this.vulkanInstance, this.physicalDevice, window);
+        this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 3, true);
     }
 
     public void free() {

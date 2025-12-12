@@ -7,7 +7,7 @@ import sp.sponge.util.objects.Transformation;
 
 public class Square extends SceneObject {
 
-    public Square(float x, float y, float z, boolean fixed) {
+    public Square(boolean fixed) {
         super(Objects.SQUARE, fixed);
     }
 

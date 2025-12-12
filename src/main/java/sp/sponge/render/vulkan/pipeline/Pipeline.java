@@ -14,17 +14,17 @@ public class Pipeline {
     private final long vkPipeline;
     private final long vkPipelineLayout;
 
-    public Pipeline(VulkanCtx ctx, ShaderModule[] shaderModules, VkPipelineVertexInputStateCreateInfo vertexInputState, int colorFormat) {
+    public Pipeline(VulkanCtx ctx, Builder builder) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             LongBuffer longBuffer = stack.mallocLong(1);
 
             ByteBuffer main = stack.UTF8("main");
 
-            int numOfShaderModules = shaderModules.length;
+            int numOfShaderModules = builder.shaderModules.length;
             VkPipelineShaderStageCreateInfo.Buffer stagesCreateInfo = VkPipelineShaderStageCreateInfo.calloc(numOfShaderModules, stack);
 
             for (int i = 0; i < numOfShaderModules; i++) {
-                ShaderModule shaderModule = shaderModules[i];
+                ShaderModule shaderModule = builder.shaderModules[i];
                 stagesCreateInfo.get(i)
                         .sType$Default()
                         .stage(shaderModule.getShaderStage())
@@ -73,16 +73,47 @@ public class Pipeline {
                     .sType$Default()
                     .pAttachments(colorBlendAttachmentState);
 
+            //Depth
+            VkPipelineDepthStencilStateCreateInfo depthCreateInfo = null;
+            if (builder.depthFormat != VK10.VK_FORMAT_UNDEFINED) {
+                depthCreateInfo = VkPipelineDepthStencilStateCreateInfo.calloc(stack)
+                        .sType$Default()
+                        .depthTestEnable(true)
+                        .depthWriteEnable(true)
+                        .depthCompareOp(VK10.VK_COMPARE_OP_LESS_OR_EQUAL)
+                        .depthBoundsTestEnable(false)
+                        .stencilTestEnable(false);
+            }
+
             IntBuffer colorFormats = stack.mallocInt(1);
-            colorFormats.put(0, colorFormat);
+            colorFormats.put(0, builder.colorFormat);
             VkPipelineRenderingCreateInfo renderingCreateInfo = VkPipelineRenderingCreateInfo.calloc(stack)
                     .sType$Default()
                     .colorAttachmentCount(1)
                     .pColorAttachmentFormats(colorFormats);
 
+            if (depthCreateInfo != null) {
+                renderingCreateInfo.depthAttachmentFormat(builder.depthFormat);
+            }
+
             //PipelineLayout (binding point for things like uniforms)
+            VkPushConstantRange.Buffer pushConstantRangeBuffer = null;
+            PushConstRange[] pushConstRanges = builder.pushConstRanges;
+            if (pushConstRanges != null && pushConstRanges.length > 0) {
+                int numOfPCRs = pushConstRanges.length;
+                pushConstantRangeBuffer = VkPushConstantRange.calloc(numOfPCRs, stack);
+                for (int i = 0; i < numOfPCRs; i++) {
+                    PushConstRange pushConstRange = pushConstRanges[i];
+                    pushConstantRangeBuffer.get(i)
+                            .stageFlags(pushConstRange.stage)
+                            .offset(pushConstRange.offset)
+                            .size(pushConstRange.size);
+                }
+            }
+
             VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
-                    .sType$Default();
+                    .sType$Default()
+                    .pPushConstantRanges(pushConstantRangeBuffer);
 
             VulkanUtils.check(
                     VK10.vkCreatePipelineLayout(ctx.getLogicalDevice().getVkDevice(), pipelineLayoutCreateInfo, null, longBuffer),
@@ -96,7 +127,7 @@ public class Pipeline {
                     .sType$Default()
                     .renderPass(VK10.VK_NULL_HANDLE)
                     .pStages(stagesCreateInfo)
-                    .pVertexInputState(vertexInputState)
+                    .pVertexInputState(builder.vertexInputState)
                     .pInputAssemblyState(assemblyCreateInfo)
                     .pViewportState(viewportCreateInfo)
                     .pRasterizationState(rasterizationCreateInfo)
@@ -105,6 +136,10 @@ public class Pipeline {
                     .pColorBlendState(colorBlendStateCreateInfo)
                     .pNext(renderingCreateInfo)
                     .layout(this.vkPipelineLayout);
+
+            if (depthCreateInfo != null) {
+                createInfo.pDepthStencilState(depthCreateInfo);
+            }
 
             VulkanUtils.check(
                     VK10.vkCreateGraphicsPipelines(ctx.getLogicalDevice().getVkDevice(), ctx.getPipelineCache().getVkPipelineCache(), createInfo, null, longBuffer),
@@ -128,4 +163,35 @@ public class Pipeline {
         VK10.vkDestroyPipelineLayout(device, this.vkPipelineLayout, null);
         VK10.vkDestroyPipeline(device, this.vkPipeline, null);
     }
+
+    public static class Builder {
+        private final ShaderModule[] shaderModules;
+        private final VkPipelineVertexInputStateCreateInfo vertexInputState;
+        private final int colorFormat;
+        private int depthFormat;
+        private PushConstRange[] pushConstRanges;
+
+        public Builder(ShaderModule[] shaderModules, VkPipelineVertexInputStateCreateInfo vertexInputState, int colorFormat) {
+            this.shaderModules = shaderModules;
+            this.vertexInputState = vertexInputState;
+            this.colorFormat = colorFormat;
+            this.depthFormat = VK10.VK_FORMAT_UNDEFINED;
+        }
+
+        public Builder setDepthFormat(int depthFormat) {
+            this.depthFormat = depthFormat;
+            return this;
+        }
+
+        public Builder setPushConstRanges(PushConstRange[] pushConstRanges) {
+            this.pushConstRanges = pushConstRanges;
+            return this;
+        }
+
+        public Pipeline build(VulkanCtx ctx) {
+            return new Pipeline(ctx, this);
+        }
+    }
+
+    public record PushConstRange(int stage, int offset, int size){}
 }

@@ -9,7 +9,7 @@ import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.LongBuffer;
 
-public class ImageView implements AutoCloseable {
+public class ImageView {
     private final LogicalDevice logicalDevice;
     private final int aspectMask;
     private final int mipLevels;
@@ -67,8 +67,7 @@ public class ImageView implements AutoCloseable {
         return imageHandle;
     }
 
-    @Override
-    public void close() {
+    public void free() {
         VK10.vkDestroyImageView(this.logicalDevice.getVkDevice(), this.vkImageViewHandle, null);
     }
 

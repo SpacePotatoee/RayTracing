@@ -1,6 +1,7 @@
 package sp.sponge.render.vulkan.buffer;
 
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.vulkan.VK10;
@@ -10,14 +11,15 @@ import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.device.command.CommandBuffer;
 import sp.sponge.render.vulkan.model.VkBuffer;
 
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
 public class TriangleBuffers {
-    private static final int SIZE = 100000;
+    private static final int SIZE = 100000000;
     private final VulkanCtx vulkanCtx;
     private final BufferPair vertexBuffers;
     private int numOfTriangles;
-    private FloatBuffer buffer;
+    private ByteBuffer buffer;
 
     public TriangleBuffers(VulkanCtx ctx) {
         this.vulkanCtx = ctx;
@@ -29,29 +31,49 @@ public class TriangleBuffers {
 
         for (Mesh.Face face : mesh.getFaces()) {
             Mesh.Vertex v1 = face.v1();
-//            Vector3f pointA = transform.transformPosition(v1.x(), v1.y(), v1.z(), new Vector3f());
-            buffer.put(v1.x());
-            buffer.put(v1.y());
-            buffer.put(v1.z());
+            Vector3f pointA = transform.transformPosition(v1.x(), v1.y(), v1.z(), new Vector3f());
+            buffer.putFloat(pointA.x());
+            buffer.putFloat(pointA.y());
+            buffer.putFloat(pointA.z());
+            buffer.putFloat(0);
+
+            buffer.putShort(Float.floatToFloat16(v1.normalX()));
+            buffer.putShort(Float.floatToFloat16(v1.normalY()));
+            buffer.putShort(Float.floatToFloat16(v1.normalZ()));
+            buffer.putShort((short) 0);
+
 
             Mesh.Vertex v2 = face.v2();
-//            Vector3f pointB = transform.transformPosition(v2.x(), v2.y(), v2.z(), new Vector3f());
-            buffer.put(v2.x());
-            buffer.put(v2.y());
-            buffer.put(v2.z());
+            Vector3f pointB = transform.transformPosition(v2.x(), v2.y(), v2.z(), new Vector3f());
+            buffer.putFloat(pointB.x());
+            buffer.putFloat(pointB.y());
+            buffer.putFloat(pointB.z());
+            buffer.putFloat(0);
+
+            buffer.putShort(Float.floatToFloat16(v2.normalX()));
+            buffer.putShort(Float.floatToFloat16(v2.normalY()));
+            buffer.putShort(Float.floatToFloat16(v2.normalZ()));
+            buffer.putShort((short) 0);
+
 
             Mesh.Vertex v3 = face.v3();
-//            Vector3f pointC = transform.transformPosition(v3.x(), v3.y(), v3.z(), new Vector3f());
-            buffer.put(v3.x());
-            buffer.put(v3.y());
-            buffer.put(v3.z());
+            Vector3f pointC = transform.transformPosition(v3.x(), v3.y(), v3.z(), new Vector3f());
+            buffer.putFloat(pointC.x());
+            buffer.putFloat(pointC.y());
+            buffer.putFloat(pointC.z());
+            buffer.putFloat(0);
+
+            buffer.putShort(Float.floatToFloat16(v3.normalX()));
+            buffer.putShort(Float.floatToFloat16(v3.normalY()));
+            buffer.putShort(Float.floatToFloat16(v3.normalZ()));
+            buffer.putShort((short) 0);
             this.numOfTriangles++;
         }
     }
 
     public void startMapping() {
         long mappedMemory = this.vertexBuffers.cpuBuffer().map(this.vulkanCtx);
-        this.buffer = MemoryUtil.memFloatBuffer(mappedMemory, (int) this.vertexBuffers.cpuBuffer().getRequestedSize());
+        this.buffer = MemoryUtil.memByteBuffer(mappedMemory, (int) this.vertexBuffers.cpuBuffer().getRequestedSize());
     }
 
     public void stopMapping() {

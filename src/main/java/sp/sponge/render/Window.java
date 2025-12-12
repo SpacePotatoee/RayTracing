@@ -1,6 +1,7 @@
 package sp.sponge.render;
 
 import org.lwjgl.glfw.GLFWVulkan;
+import sp.sponge.input.Input;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -9,6 +10,7 @@ public class Window implements AutoCloseable {
     private long handle;
     private int width;
     private int height;
+    private Input input;
 
     public static Window getWindow() {
         if (INSTANCE == null) {
@@ -38,6 +40,15 @@ public class Window implements AutoCloseable {
         if (this.handle == 0L) {
             throw new RuntimeException("Failed to create window");
         }
+
+        glfwSetWindowSizeCallback(this.handle, this::resize);
+
+        this.input = new Input(this);
+    }
+
+    public void resize(long handle, int width, int height) {
+        this.width = width;
+        this.height = height;
     }
 
     public long getHandle() {
@@ -58,6 +69,10 @@ public class Window implements AutoCloseable {
 
     public int getHeight() {
         return height;
+    }
+
+    public Input getInput() {
+        return input;
     }
 
     @Override

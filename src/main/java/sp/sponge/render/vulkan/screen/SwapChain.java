@@ -59,7 +59,8 @@ public class SwapChain implements AutoCloseable {
 
     }
 
-    public void presentImage(Queue.PresentQueue presentQueue, Semaphore semaphore, int imageIndex) {
+    public boolean presentImage(Queue.PresentQueue presentQueue, Semaphore semaphore, int imageIndex) {
+        boolean resize = false;
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkPresentInfoKHR presentInfo = VkPresentInfoKHR.calloc(stack)
                     .sType$Default()
@@ -68,8 +69,18 @@ public class SwapChain implements AutoCloseable {
                     .pSwapchains(stack.longs(this.swapChainHandle))
                     .pImageIndices(stack.ints(imageIndex));
 
-            KHRSwapchain.vkQueuePresentKHR(presentQueue.getQueue(), presentInfo);
+            int error = KHRSwapchain.vkQueuePresentKHR(presentQueue.getQueue(), presentInfo);
+
+            if (error == KHRSwapchain.VK_ERROR_OUT_OF_DATE_KHR) {
+                resize = true;
+            } else if (error == KHRSwapchain.VK_SUBOPTIMAL_KHR) {
+                //Eh. Good enough
+            } else if (error != VK10.VK_SUCCESS) {
+                throw new RuntimeException("Failed to present Image with error: " + error);
+            }
         }
+
+        return resize;
     }
 
     public int getNextImage(LogicalDevice logicalDevice, Semaphore semaphore) {
@@ -171,7 +182,7 @@ public class SwapChain implements AutoCloseable {
     @Override
     public void close() {
         this.extent2D.free();
-        Arrays.asList(imageViews).forEach(ImageView::close);
+        Arrays.asList(imageViews).forEach(ImageView::free);
         KHRSwapchain.vkDestroySwapchainKHR(this.logicalDevice.getVkDevice(), this.swapChainHandle, null);
     }
 }

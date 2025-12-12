@@ -6,14 +6,14 @@ import org.lwjgl.vulkan.VkVertexInputAttributeDescription;
 import org.lwjgl.vulkan.VkVertexInputBindingDescription;
 
 public class VertexBufferStruct {
-    private final int numOfAttributes = 1;
+    private final int numOfAttributes = 2;
 
-    private final int POSITION_COMPONENTS = 3;
-//    private final int TEXTURE_COMPONENTS = 2;
+    private final int POSITION_COMPONENTS = 4;
+    private final int NORMAL_COMPONENTS = 4;
 
     private final int POSITION_STRIDE = POSITION_COMPONENTS * Float.BYTES;
-//    private final int TEXTURE_STRIDE = TEXTURE_COMPONENTS * Float.BYTES;
-    private final int STRIDE = POSITION_STRIDE;
+    private final int NORMAL_STRIDE = NORMAL_COMPONENTS * Short.BYTES;
+    private final int STRIDE = POSITION_STRIDE + NORMAL_STRIDE;
 
     private final VkVertexInputAttributeDescription.Buffer vertexAttributesDescriptions;
     private final VkVertexInputBindingDescription.Buffer vertexDescription;
@@ -31,15 +31,15 @@ public class VertexBufferStruct {
                 .location(0)
                 .format(VK10.VK_FORMAT_R32G32B32_SFLOAT)
                 .offset(offset);
-//        offset += POSITION_STRIDE;
+        offset += POSITION_STRIDE;
 
 
-        //UV
-//        vertexAttributesDescriptions.get(1)
-//                .binding(0)
-//                .location(1)
-//                .format(VK10.VK_FORMAT_R32G32_SFLOAT)
-//                .offset(offset);
+        //NORMAL
+        vertexAttributesDescriptions.get(1)
+                .binding(0)
+                .location(1)
+                .format(VK10.VK_FORMAT_R16G16B16_SFLOAT)
+                .offset(offset);
 
 
         vertexDescription.get(0)
