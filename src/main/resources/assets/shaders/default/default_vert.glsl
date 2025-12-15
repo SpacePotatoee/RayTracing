@@ -5,7 +5,7 @@ layout(location = 1) in vec3 Normal;
 
 layout(location = 0) out vec3 normal;
 
-layout(push_constant) uniform matricies {
+layout(set = 0, binding = 0) uniform matricies {
     mat4 projMat;
     mat4 modelViewMat;
 } cameraMats;

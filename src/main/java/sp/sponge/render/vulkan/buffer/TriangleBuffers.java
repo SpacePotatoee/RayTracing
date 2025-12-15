@@ -9,13 +9,11 @@ import org.lwjgl.vulkan.VkBufferCopy;
 import sp.sponge.render.vulkan.model.Mesh;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.device.command.CommandBuffer;
-import sp.sponge.render.vulkan.model.VkBuffer;
 
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
 
 public class TriangleBuffers {
-    private static final int SIZE = 100000000;
+    private static final int SIZE = 50000000;
     private final VulkanCtx vulkanCtx;
     private final BufferPair vertexBuffers;
     private int numOfTriangles;
@@ -72,8 +70,7 @@ public class TriangleBuffers {
     }
 
     public void startMapping() {
-        long mappedMemory = this.vertexBuffers.cpuBuffer().map(this.vulkanCtx);
-        this.buffer = MemoryUtil.memByteBuffer(mappedMemory, (int) this.vertexBuffers.cpuBuffer().getRequestedSize());
+        this.buffer = this.vertexBuffers.cpuBuffer().map(this.vulkanCtx);
     }
 
     public void stopMapping() {

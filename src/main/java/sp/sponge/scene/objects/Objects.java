@@ -34,6 +34,10 @@ public class Objects {
             new ObjectType<>(Dragon.class, "dragon", Dragon::new)
     );
 
+    public static final ObjectType<SceneObject> SPONZA = Registries.SceneObjectRegistry.register(
+            new ObjectType<>(Dragon.class, "sponza1", Dragon::new)
+    );
+
     public static void registerObjects() {
         Sponge.getInstance().getLogger().info("Registering Objects");
     }

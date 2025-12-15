@@ -4,6 +4,7 @@ import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
+import sp.sponge.render.vulkan.buffer.descriptors.DescriptorSetLayout;
 import sp.sponge.render.vulkan.pipeline.shaders.ShaderModule;
 
 import java.nio.ByteBuffer;
@@ -47,8 +48,8 @@ public class Pipeline {
             VkPipelineRasterizationStateCreateInfo rasterizationCreateInfo = VkPipelineRasterizationStateCreateInfo.calloc(stack)
                     .sType$Default()
                     .polygonMode(VK10.VK_POLYGON_MODE_FILL)
-                    .cullMode(VK10.VK_CULL_MODE_NONE)
-                    .frontFace(VK10.VK_FRONT_FACE_CLOCKWISE)
+                    .cullMode(VK10.VK_CULL_MODE_BACK_BIT)
+                    .frontFace(VK10.VK_FRONT_FACE_COUNTER_CLOCKWISE)
                     .lineWidth(1.0f);
 
             //Multisampling (Off is 1 sample)
@@ -96,7 +97,7 @@ public class Pipeline {
                 renderingCreateInfo.depthAttachmentFormat(builder.depthFormat);
             }
 
-            //PipelineLayout (binding point for things like uniforms)
+            //Pipeline Layout (binding point for things like uniforms)
             VkPushConstantRange.Buffer pushConstantRangeBuffer = null;
             PushConstRange[] pushConstRanges = builder.pushConstRanges;
             if (pushConstRanges != null && pushConstRanges.length > 0) {
@@ -111,8 +112,17 @@ public class Pipeline {
                 }
             }
 
+            //Descriptor Set Layouts
+            DescriptorSetLayout[] descriptorSetLayouts = builder.descriptorSetLayouts;
+            int numOfLayouts = descriptorSetLayouts != null ? descriptorSetLayouts.length : 0;
+            LongBuffer layoutsBuffer = stack.mallocLong(numOfLayouts);
+            for (int i = 0; i < numOfLayouts; i++) {
+                layoutsBuffer.put(i, descriptorSetLayouts[i].getVkDescriptorSetLayout());
+            }
+
             VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = VkPipelineLayoutCreateInfo.calloc(stack)
                     .sType$Default()
+                    .pSetLayouts(layoutsBuffer)
                     .pPushConstantRanges(pushConstantRangeBuffer);
 
             VulkanUtils.check(
@@ -170,6 +180,7 @@ public class Pipeline {
         private final int colorFormat;
         private int depthFormat;
         private PushConstRange[] pushConstRanges;
+        private DescriptorSetLayout[] descriptorSetLayouts;
 
         public Builder(ShaderModule[] shaderModules, VkPipelineVertexInputStateCreateInfo vertexInputState, int colorFormat) {
             this.shaderModules = shaderModules;
@@ -185,6 +196,11 @@ public class Pipeline {
 
         public Builder setPushConstRanges(PushConstRange[] pushConstRanges) {
             this.pushConstRanges = pushConstRanges;
+            return this;
+        }
+
+        public Builder setDescriptorSetLayouts(DescriptorSetLayout[] descriptorSetLayouts) {
+            this.descriptorSetLayouts = descriptorSetLayouts;
             return this;
         }
 

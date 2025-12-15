@@ -20,7 +20,7 @@ public class Camera {
     private boolean moved;
 
     public Camera() {
-        this.fov = 45;
+        this.fov = 70;
         this.position = new Vec3f(0,0, 0);
         this.rotationVector = new Vec3f(0, 0, 1);
     }
@@ -31,10 +31,7 @@ public class Camera {
 
     public void updateCamera() {
         this.moved = false;
-//        if (ImGui.getIO().getWantTextInput()) {
-//            return;
-//        }
-        float speed = 0.02f;
+        float speed = 0.05f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {
             this.moved = true;

@@ -2,6 +2,7 @@ package sp.sponge.render.vulkan;
 
 import sp.sponge.Sponge;
 import sp.sponge.render.Window;
+import sp.sponge.render.vulkan.buffer.descriptors.DescriptorAllocator;
 import sp.sponge.render.vulkan.device.LogicalDevice;
 import sp.sponge.render.vulkan.device.PhysicalDevice;
 import sp.sponge.render.vulkan.pipeline.PipelineCache;
@@ -15,6 +16,7 @@ public class VulkanCtx {
     private Surface surface;
     private SwapChain swapChain;
     private final PipelineCache pipelineCache;
+    private final DescriptorAllocator descriptorAllocator;
 
     public VulkanCtx() {
         this.vulkanInstance = new VulkanInstance(true);
@@ -24,6 +26,11 @@ public class VulkanCtx {
         this.surface = new Surface(this.vulkanInstance, this.physicalDevice, window);
         this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 3, true);
         this.pipelineCache = new PipelineCache(this.logicalDevice);
+        this.descriptorAllocator = new DescriptorAllocator(this.physicalDevice, this.logicalDevice);
+    }
+
+    public DescriptorAllocator getDescriptorAllocator() {
+        return descriptorAllocator;
     }
 
     public PipelineCache getPipelineCache() {
@@ -60,6 +67,7 @@ public class VulkanCtx {
     }
 
     public void free() {
+        this.descriptorAllocator.close(this.logicalDevice);
         this.pipelineCache.close(this.logicalDevice);
         this.swapChain.close();
         this.surface.close();

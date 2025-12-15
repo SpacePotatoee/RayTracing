@@ -2,7 +2,7 @@ package sp.sponge.render.vulkan;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
-import sp.sponge.render.vulkan.device.command.CommandBuffer;
+import sp.sponge.render.vulkan.buffer.VkBuffer;
 
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -19,7 +19,7 @@ public class VulkanUtils {
     public static final int MESSAGE_TYPE_BITMASK = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    private static final String DBG_CALL_BACK_PREF = "VkDebugUtilsCallback, ";
+    private static final String DBG_CALL_BACK_PREFIX = "VkDebugUtilsCallback, ";
 
     public static OSType getOS() {
         if (osType == null) {
@@ -28,6 +28,10 @@ public class VulkanUtils {
         }
 
         return osType;
+    }
+
+    public static VkBuffer createCpuBuffer(VulkanCtx ctx, long size, int usage) {
+        return new VkBuffer(ctx, size, usage, VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
     }
 
     public static int getMemoryType(VulkanCtx ctx, int memoryBits, int reqMask) {
@@ -82,16 +86,14 @@ public class VulkanUtils {
                 .pfnUserCallback((messageSeverity, messageTypes, pCallbackData, pUserData) -> {
                     VkDebugUtilsMessengerCallbackDataEXT callbackData = VkDebugUtilsMessengerCallbackDataEXT.create(pCallbackData);
 
-//                    logger.warning("VkDebugUtilsCallback, " + callbackData.pMessageString());
-
                     if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) != 0) {
-                        logger.info(DBG_CALL_BACK_PREF + callbackData.pMessageString());
+                        logger.info(DBG_CALL_BACK_PREFIX + callbackData.pMessageString());
                     } else if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) != 0) {
-                        logger.warning(DBG_CALL_BACK_PREF + callbackData.pMessageString());
+                        logger.warning(DBG_CALL_BACK_PREFIX + callbackData.pMessageString());
                     } else if ((messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) != 0) {
-                        logger.severe(DBG_CALL_BACK_PREF + callbackData.pMessageString());
+                        logger.severe(DBG_CALL_BACK_PREFIX + callbackData.pMessageString());
                     } else {
-                        logger.info(DBG_CALL_BACK_PREF + callbackData.pMessageString());
+                        logger.info(DBG_CALL_BACK_PREFIX + callbackData.pMessageString());
                     }
                     return VK_FALSE;
                 });
@@ -121,7 +123,7 @@ public class VulkanUtils {
                 default -> "Unknown error";
             };
 
-            throw new RuntimeException(errorString + type);
+            throw new RuntimeException(errorString + ": " + type);
         }
     }
 

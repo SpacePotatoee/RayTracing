@@ -2,16 +2,19 @@ package sp.sponge.render;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.system.Struct;
 import org.lwjgl.util.shaderc.Shaderc;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.buffer.TriangleBuffers;
+import sp.sponge.render.vulkan.buffer.descriptors.DescriptorAllocator;
+import sp.sponge.render.vulkan.buffer.descriptors.DescriptorSet;
+import sp.sponge.render.vulkan.buffer.descriptors.DescriptorSetLayout;
 import sp.sponge.render.vulkan.device.command.CommandBuffer;
 import sp.sponge.render.vulkan.device.command.CommandPool;
 import sp.sponge.render.vulkan.device.Queue;
 import sp.sponge.render.vulkan.model.VertexBufferStruct;
+import sp.sponge.render.vulkan.buffer.VkBuffer;
 import sp.sponge.render.vulkan.pipeline.Pipeline;
 import sp.sponge.render.vulkan.pipeline.shaders.ShaderCompiler;
 import sp.sponge.render.vulkan.pipeline.shaders.ShaderModule;
@@ -21,11 +24,10 @@ import sp.sponge.render.vulkan.sync.Fence;
 import sp.sponge.render.vulkan.sync.Semaphore;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
-import sp.sponge.scene.objects.custom.Circle;
-import sp.sponge.scene.objects.custom.Sphere;
 import sp.sponge.scene.objects.custom.Square;
 import sp.sponge.scene.objects.custom.obj.Bunny;
-import sp.sponge.scene.objects.custom.obj.Cube;
+import sp.sponge.scene.objects.custom.obj.Dragon;
+import sp.sponge.scene.objects.custom.obj.Sponza;
 
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -40,6 +42,8 @@ public class MainRenderer {
 
     private static final String VERTEX_SHADER_FILE_GLSL = "shaders/default/default_vert.glsl";
     private static final String VERTEX_SHADER_FILE_SPV = VERTEX_SHADER_FILE_GLSL + ".spv";
+
+    private static final String VERTEX_DESC_SET = "vert_desc_set";
 
     private static final float [] clearColor = new float[] {0.0f, 0.0f, 0.0f, 0.0f};
     private final Camera camera;
@@ -56,6 +60,7 @@ public class MainRenderer {
     private Semaphore presentSemaphores;
 
     private final ByteBuffer pushConstBuff;
+    private final VkBuffer vertexUniformBuffer;
 
     private final TriangleBuffers triangleBuffers;
     private final Pipeline pipeline;
@@ -79,9 +84,6 @@ public class MainRenderer {
         this.presentSemaphores = new Semaphore(this.vulkanCtx);
 
         this.triangleBuffers = new TriangleBuffers(this.vulkanCtx);
-        ShaderModule[] shaderModules = createShaderModules();
-        this.pipeline = this.createPipeline(shaderModules);
-        Arrays.asList(shaderModules).forEach(shaderModule -> shaderModule.free(this.vulkanCtx));
 
         this.depthAttachments = createDepthAttachments(numOfImages);
         this.renderingInfo = setupRenderInfo(numOfImages);
@@ -90,19 +92,51 @@ public class MainRenderer {
 
         this.initScene();
         this.updateObjects(this.vulkanCtx, this.commandPool, this.graphicsQueue);
+
+        DescriptorSetLayout vertexUnifDescLayout = new DescriptorSetLayout(
+                this.vulkanCtx,
+                new DescriptorSetLayout.LayoutInfo(
+                        VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                        0,
+                        1,
+                        VK10.VK_SHADER_STAGE_VERTEX_BIT
+                )
+        );
+
+        DescriptorSet vertUniformDescSet = this.vulkanCtx.getDescriptorAllocator().createDescriptorSet(
+                this.vulkanCtx,
+                VERTEX_DESC_SET,
+                vertexUnifDescLayout
+        );
+
+        vertexUniformBuffer = VulkanUtils.createCpuBuffer(this.vulkanCtx, 128, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        vertUniformDescSet.setBuffer(
+                this.vulkanCtx.getLogicalDevice(),
+                vertexUniformBuffer,
+                vertexUniformBuffer.getRequestedSize(),
+                vertexUnifDescLayout.getLayoutInfo().binding(),
+                vertexUnifDescLayout.getLayoutInfo().descriptorType()
+        );
+        this.setVertexUniformsUniforms(vertexUniformBuffer);
+
+        ShaderModule[] shaderModules = createShaderModules();
+        this.pipeline = this.createPipeline(shaderModules, new DescriptorSetLayout[]{vertexUnifDescLayout});
+        Arrays.asList(shaderModules).forEach(shaderModule -> shaderModule.free(this.vulkanCtx));
     }
 
     private void initScene() {
-        SceneManager.addObject(new Bunny(false));
+        this.camera.updateCamera();
+        SceneManager.addObject(new Square(false));
     }
 
-    private Pipeline createPipeline(ShaderModule[] shaderModules) {
+    private Pipeline createPipeline(ShaderModule[] shaderModules, DescriptorSetLayout[] layouts) {
         VertexBufferStruct vertexBufferStruct = new VertexBufferStruct();
         Pipeline pipeline = new Pipeline.Builder(shaderModules, vertexBufferStruct.getCreateInfo(), this.vulkanCtx.getSurface().getSurfaceFormat().imageFormat())
                 .setDepthFormat(VK10.VK_FORMAT_D16_UNORM)
                 .setPushConstRanges(new Pipeline.PushConstRange[]{
                         new Pipeline.PushConstRange(VK10.VK_SHADER_STAGE_VERTEX_BIT, 0, 128)
                 })
+                .setDescriptorSetLayouts(layouts)
                 .build(this.vulkanCtx);
         vertexBufferStruct.free();
         return pipeline;
@@ -228,7 +262,20 @@ public class MainRenderer {
 
             VK10.vkCmdBindPipeline(buffer, VK10.VK_PIPELINE_BIND_POINT_GRAPHICS, this.pipeline.getVkPipeline());
 
+            DescriptorAllocator allocator = this.vulkanCtx.getDescriptorAllocator();
+            LongBuffer descriptorSets = stack.mallocLong(1)
+                    .put(0, allocator.getDescriptorSet(VERTEX_DESC_SET).getVkDescriptorSet());
+            VK10.vkCmdBindDescriptorSets(
+                    buffer,
+                    VK10.VK_PIPELINE_BIND_POINT_GRAPHICS,
+                    this.pipeline.getVkPipelineLayout(),
+                    0,
+                    descriptorSets,
+                    null
+            );
+
             this.setPushConstants(buffer);
+            this.setVertexUniformsUniforms(vertexUniformBuffer);
 
             VkExtent2D extent = this.vulkanCtx.getSwapChain().getExtent2D();
             int width = extent.width();
@@ -319,6 +366,22 @@ public class MainRenderer {
             commandBuffers.add(new CommandBuffer(this.vulkanCtx, this.commandPool, true, true));
         }
     }
+
+    private void setVertexUniformsUniforms(VkBuffer vkBuffer) {
+        ByteBuffer buffer = vkBuffer.map(this.vulkanCtx);
+
+        this.camera.getProjectionMatrix().get(buffer);
+        this.camera.getModelViewMatrix().get(64, buffer);
+//        buffer.flip();
+
+        vkBuffer.unmap(this.vulkanCtx);
+    }
+
+//    private void setDefaultUniforms(VkBuffer vkBuffer) {
+//        ByteBuffer buffer = vkBuffer.map(this.vulkanCtx);
+//
+//        vkBuffer.unmap(this.vulkanCtx);
+//    }
 
     private void resize() {
         this.needsToResize = false;
