@@ -29,19 +29,50 @@ public class LogicalDevice implements AutoCloseable {
 
             PointerBuffer enabledExtensinsPtr = createRequiredExtensions(physicalDevice, stack);
 
-            VkPhysicalDeviceVulkan13Features features = VkPhysicalDeviceVulkan13Features.calloc(stack)
+
+            VkPhysicalDeviceVulkan11Features features11 = VkPhysicalDeviceVulkan11Features.calloc(stack)
+                    .sType$Default()
+                    .shaderDrawParameters(true);
+
+            VkPhysicalDeviceVulkan12Features features12 = VkPhysicalDeviceVulkan12Features.calloc(stack)
+                    .sType$Default()
+                    .bufferDeviceAddress(true)
+                    .runtimeDescriptorArray(true)
+                    .scalarBlockLayout(true)
+                    .drawIndirectCount(true)
+                    .samplerMirrorClampToEdge(true)
+                    .descriptorIndexing(true)
+                    .samplerFilterMinmax(true)
+                    .shaderOutputViewportIndex(true)
+                    .shaderOutputLayer(true);
+
+            VkPhysicalDeviceVulkan13Features features13 = VkPhysicalDeviceVulkan13Features.calloc(stack)
                     .sType$Default()
                     .dynamicRendering(true)
                     .synchronization2(true);
 
             VkPhysicalDeviceFeatures2 features2 = VkPhysicalDeviceFeatures2.calloc(stack).sType$Default();
-            features2.pNext(features);
+            features2.pNext(features11.address());
+            features11.pNext(features12.address());
+            features12.pNext(features13.address());
+
+
+            VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeatures = VkPhysicalDeviceRayTracingPipelineFeaturesKHR.calloc(stack)
+                    .sType$Default()
+                    .rayTracingPipeline(true);
+
+            VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures = VkPhysicalDeviceAccelerationStructureFeaturesKHR.calloc(stack)
+                    .sType$Default()
+                    .accelerationStructure(true);
+
 
             VkDeviceCreateInfo deviceCreateInfo = VkDeviceCreateInfo.calloc(stack)
                     .sType$Default()
                     .pNext(features2.address())
                     .pQueueCreateInfos(info)
-                    .ppEnabledExtensionNames(enabledExtensinsPtr);
+                    .ppEnabledExtensionNames(enabledExtensinsPtr)
+                    .pNext(rtPipelineFeatures)
+                    .pNext(asFeatures);
 
             PointerBuffer devicePointer = stack.mallocPointer(1);
             VulkanUtils.check(

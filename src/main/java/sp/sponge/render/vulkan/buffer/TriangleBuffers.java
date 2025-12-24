@@ -4,7 +4,10 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.util.vma.Vma;
+import org.lwjgl.vulkan.KHRAccelerationStructure;
 import org.lwjgl.vulkan.VK10;
+import org.lwjgl.vulkan.VK13;
 import org.lwjgl.vulkan.VkBufferCopy;
 import sp.sponge.render.vulkan.model.Mesh;
 import sp.sponge.render.vulkan.VulkanCtx;
@@ -95,11 +98,15 @@ public class TriangleBuffers {
 
         VkBuffer cpuBuffer = new VkBuffer(ctx, SIZE,
                 VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                Vma.VMA_MEMORY_USAGE_AUTO,
+                Vma.VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
                 VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
         );
 
         VkBuffer gpuBuffer = new VkBuffer(ctx, SIZE,
-                VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage,
+                VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage | VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK13.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | KHRAccelerationStructure.VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+                Vma.VMA_MEMORY_USAGE_AUTO,
+                Vma.VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
                 VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
         );
 

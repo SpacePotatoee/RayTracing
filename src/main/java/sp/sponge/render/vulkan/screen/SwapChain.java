@@ -14,6 +14,9 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 
+import static org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_SAMPLED_BIT;
+import static org.lwjgl.vulkan.VK10.VK_IMAGE_USAGE_STORAGE_BIT;
+
 public class SwapChain implements AutoCloseable {
     private final LogicalDevice logicalDevice;
     private final long swapChainHandle;
@@ -38,7 +41,7 @@ public class SwapChain implements AutoCloseable {
                     .imageColorSpace(surfaceFormat.colorSpace())
                     .imageExtent(this.extent2D)
                     .imageArrayLayers(1)
-                    .imageUsage(VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT)
+                    .imageUsage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT)
                     .imageSharingMode(VK10.VK_SHARING_MODE_EXCLUSIVE)
                     .preTransform(surfaceCapabilities.currentTransform())
                     .compositeAlpha(KHRSurface.VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR)

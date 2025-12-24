@@ -20,6 +20,7 @@ public class ShaderCompiler {
         try {
             compiler = Shaderc.shaderc_compiler_initialize();
             options = Shaderc.shaderc_compile_options_initialize();
+            Shaderc.shaderc_compile_options_set_target_spirv(options, Shaderc.shaderc_spirv_version_1_4);
 
             long result = Shaderc.shaderc_compile_into_spv(
                     compiler,

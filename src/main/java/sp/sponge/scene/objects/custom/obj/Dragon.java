@@ -13,6 +13,6 @@ public class Dragon extends AbstractObjObject {
     }
 
     public Dragon(Transformation transformation, boolean fixed) {
-        super(Objects.DRAGON, transformation, fixed, "dragon_8k");
+        super(Objects.DRAGON, transformation, fixed, "dragon_80k");
     }
 }

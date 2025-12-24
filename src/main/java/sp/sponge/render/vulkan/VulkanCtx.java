@@ -17,16 +17,24 @@ public class VulkanCtx {
     private SwapChain swapChain;
     private final PipelineCache pipelineCache;
     private final DescriptorAllocator descriptorAllocator;
+    private final MemoryAllocator memoryAllocator;
 
     public VulkanCtx() {
         this.vulkanInstance = new VulkanInstance(true);
         this.physicalDevice = PhysicalDevice.getMainPhysicalDevice(this.vulkanInstance.getInstance(), null, Sponge.getInstance().getLogger());
         this.logicalDevice = new LogicalDevice(this.physicalDevice);
+        this.memoryAllocator = new MemoryAllocator(this.vulkanInstance, this.physicalDevice, this.logicalDevice);
+
         Window window = Window.getWindow();
         this.surface = new Surface(this.vulkanInstance, this.physicalDevice, window);
         this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 3, true);
         this.pipelineCache = new PipelineCache(this.logicalDevice);
         this.descriptorAllocator = new DescriptorAllocator(this.physicalDevice, this.logicalDevice);
+
+    }
+
+    public MemoryAllocator getMemoryAllocator() {
+        return memoryAllocator;
     }
 
     public DescriptorAllocator getDescriptorAllocator() {
@@ -71,6 +79,7 @@ public class VulkanCtx {
         this.pipelineCache.close(this.logicalDevice);
         this.swapChain.close();
         this.surface.close();
+        this.memoryAllocator.free();
         this.logicalDevice.close();
         this.physicalDevice.close();
         this.vulkanInstance.close();

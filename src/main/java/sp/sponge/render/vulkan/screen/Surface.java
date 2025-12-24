@@ -40,21 +40,21 @@ public class Surface implements AutoCloseable {
         IntBuffer formatCount = stack.mallocInt(1);
         VulkanUtils.check(
                 KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(device.getVkPhysicalDevice(), this.surfaceHandle, formatCount, null),
-                "Failed tp get number surface formats"
+                "Failed to get number surface formats"
         );
         int numOfFormats = formatCount.get(0);
 
         VkSurfaceFormatKHR.Buffer surfaceFormats = VkSurfaceFormatKHR.calloc(numOfFormats, stack);
         VulkanUtils.check(
                 KHRSurface.vkGetPhysicalDeviceSurfaceFormatsKHR(device.getVkPhysicalDevice(), this.surfaceHandle, formatCount, surfaceFormats),
-                "Failed tp get surface formats"
+                "Failed to get surface formats"
         );
 
-        imageFormat = VK10.VK_FORMAT_B8G8R8A8_SRGB;
+        imageFormat = VK10.VK_FORMAT_R8G8B8A8_UNORM;
         colorSpace = surfaceFormats.get(0).colorSpace();
         for (int i = 0; i < numOfFormats; i++) {
             VkSurfaceFormatKHR surfaceFormat = surfaceFormats.get(0);
-            if (surfaceFormat.format() == VK10.VK_FORMAT_B8G8R8A8_SRGB && surfaceFormat.colorSpace() == KHRSurface.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            if (surfaceFormat.format() == VK10.VK_FORMAT_R8G8B8A8_UNORM && surfaceFormat.colorSpace() == KHRSurface.VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 imageFormat = surfaceFormat.format();
                 colorSpace = surfaceFormats.colorSpace();
                 break;

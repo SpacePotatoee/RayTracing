@@ -1,9 +1,11 @@
 package sp.sponge.render.vulkan;
 
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.vma.Vma;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.buffer.VkBuffer;
 
+import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.logging.Logger;
 
@@ -30,8 +32,45 @@ public class VulkanUtils {
         return osType;
     }
 
+    public static int alignSize(int size, int alignment) {
+        return (size + alignment - 1) & -alignment;
+    }
+
+    public static VkDeviceOrHostAddressConstKHR getBufferGpuAddressConst(VulkanCtx ctx, MemoryStack stack, long buffer) {
+        return VkDeviceOrHostAddressConstKHR
+                .malloc(stack)
+                .deviceAddress(
+                        VulkanUtils.getBufferGpuAddress(ctx, stack, buffer)
+                );
+    }
+
+    public static void copyByteBufferToVkBuffer(VulkanCtx ctx, ByteBuffer srcBuffer, int srcOffset, VkBuffer dstBuffer, int dstOffset, int length) {
+        ByteBuffer dstMapBuffer = dstBuffer.map(ctx);
+
+        for (int i = 0; i < length; i++) {
+            dstMapBuffer.put(i + dstOffset, srcBuffer.get(i + srcOffset));
+        }
+
+        dstBuffer.unmap(ctx);
+    }
+
+    public static long getBufferGpuAddress(VulkanCtx ctx, MemoryStack stack, long buffer) {
+        VkBufferDeviceAddressInfo info = VkBufferDeviceAddressInfo.calloc(stack)
+                .sType$Default()
+                .buffer(buffer);
+
+        return VK12.vkGetBufferDeviceAddress(ctx.getLogicalDevice().getVkDevice(), info);
+    }
+
     public static VkBuffer createCpuBuffer(VulkanCtx ctx, long size, int usage) {
-        return new VkBuffer(ctx, size, usage, VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        return new VkBuffer(
+                ctx,
+                size,
+                usage,
+                Vma.VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
+                Vma.VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+                VK10.VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK10.VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+        );
     }
 
     public static int getMemoryType(VulkanCtx ctx, int memoryBits, int reqMask) {

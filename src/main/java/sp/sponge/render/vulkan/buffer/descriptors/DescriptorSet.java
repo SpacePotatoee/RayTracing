@@ -2,11 +2,16 @@ package sp.sponge.render.vulkan.buffer.descriptors;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
+import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.device.LogicalDevice;
 import sp.sponge.render.vulkan.buffer.VkBuffer;
+import sp.sponge.render.vulkan.raytracing.accelstruct.TLAS;
+import sp.sponge.render.vulkan.screen.image.ImageView;
 
 import java.nio.LongBuffer;
+
+import static org.lwjgl.vulkan.VK10.VK_IMAGE_LAYOUT_GENERAL;
 
 public class DescriptorSet {
     private final long vkDescriptorSet;
@@ -28,7 +33,7 @@ public class DescriptorSet {
         }
     }
 
-    public void setBuffer(LogicalDevice device, VkBuffer buffer, long range, int binding, int type) {
+    public void setBuffer(VulkanCtx ctx, VkBuffer buffer, long range, int binding, int type) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkDescriptorBufferInfo.Buffer bufferInfo = VkDescriptorBufferInfo.calloc(1, stack)
                     .buffer(buffer.getBufferPtr())
@@ -45,7 +50,47 @@ public class DescriptorSet {
                     .descriptorCount(1)
                     .pBufferInfo(bufferInfo);
 
-            VK10.vkUpdateDescriptorSets(device.getVkDevice(), descriptorSetBuffer, null);
+            VK10.vkUpdateDescriptorSets(ctx.getLogicalDevice().getVkDevice(), descriptorSetBuffer, null);
+        }
+    }
+
+    public void setTLAS(VulkanCtx ctx, int binding, int descriptorType, TLAS tlas) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            VkWriteDescriptorSet.Buffer descriptorSetBuffer = VkWriteDescriptorSet.calloc(1, stack);
+
+            VkWriteDescriptorSetAccelerationStructureKHR setAS = VkWriteDescriptorSetAccelerationStructureKHR.calloc(stack)
+                    .sType$Default()
+                    .pAccelerationStructures(stack.longs(tlas.getAsHandle()));
+
+            descriptorSetBuffer.get(0)
+                    .sType$Default()
+                    .dstSet(this.vkDescriptorSet)
+                    .dstBinding(binding)
+                    .descriptorType(descriptorType)
+                    .descriptorCount(1)
+                    .pNext(setAS);
+
+            VK10.vkUpdateDescriptorSets(ctx.getLogicalDevice().getVkDevice(), descriptorSetBuffer, null);
+        }
+    }
+
+    public void setImage(VulkanCtx ctx, ImageView imageView, int binding) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            VkWriteDescriptorSet.Buffer descriptorSetBuffer = VkWriteDescriptorSet.calloc(1, stack);
+
+            VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.calloc(1, stack)
+                    .imageView(imageView.getVkImageViewHandle())
+                    .imageLayout(VK_IMAGE_LAYOUT_GENERAL);
+
+            descriptorSetBuffer.get(0)
+                    .sType$Default()
+                    .dstSet(this.vkDescriptorSet)
+                    .dstBinding(binding)
+                    .descriptorType(VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+                    .descriptorCount(1)
+                    .pImageInfo(imageInfo);
+
+            VK10.vkUpdateDescriptorSets(ctx.getLogicalDevice().getVkDevice(), descriptorSetBuffer, null);
         }
     }
 

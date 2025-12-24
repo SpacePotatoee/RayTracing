@@ -1,10 +1,12 @@
 package sp.sponge.render.vulkan.screen.image;
 
+import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.vma.Vma;
+import org.lwjgl.util.vma.VmaAllocationCreateInfo;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
-import sp.sponge.render.vulkan.device.LogicalDevice;
 
 import java.nio.LongBuffer;
 
@@ -19,9 +21,6 @@ public class Image {
         this.mipLevels = builder.mipLevels;
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            LogicalDevice logicalDevice = ctx.getLogicalDevice();
-            LongBuffer longBuffer = stack.mallocLong(1);
-
             //Create the image
             VkImageCreateInfo createInfo = VkImageCreateInfo.calloc(stack)
                     .sType$Default()
@@ -39,34 +38,22 @@ public class Image {
                     .tiling(VK10.VK_IMAGE_TILING_OPTIMAL)
                     .usage(builder.usage);
 
+            //TODO: Just make one instead of buffer
+            VmaAllocationCreateInfo vmaCreateInfo = VmaAllocationCreateInfo.calloc(1, stack)
+                    .get(0)
+                    .priority(1.0f)
+                    .usage(Vma.VMA_MEMORY_USAGE_AUTO)
+                    .flags(Vma.VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT);
+
+            LongBuffer longBuffer = stack.mallocLong(1);
+            PointerBuffer memPtr = stack.callocPointer(1);
             VulkanUtils.check(
-                    VK10.vkCreateImage(logicalDevice.getVkDevice(), createInfo, null, longBuffer),
-                    "Failed to create image for attachment"
+                    Vma.vmaCreateImage(ctx.getMemoryAllocator().getVmaHandle(), createInfo, vmaCreateInfo, longBuffer, memPtr, null),
+                    "Failed to create image"
             );
+
             this.vkImage = longBuffer.get(0);
-
-
-            //Allocate memory for the image
-            VkMemoryRequirements memoryRequirements = VkMemoryRequirements.calloc(stack);
-            VK10.vkGetImageMemoryRequirements(logicalDevice.getVkDevice(), this.vkImage, memoryRequirements);
-
-            VkMemoryAllocateInfo allocateInfo = VkMemoryAllocateInfo.calloc(stack)
-                    .sType$Default()
-                    .allocationSize(memoryRequirements.size())
-                    .memoryTypeIndex(VulkanUtils.getMemoryType(ctx, memoryRequirements.memoryTypeBits(), 0));
-
-            VulkanUtils.check(
-                    VK10.vkAllocateMemory(logicalDevice.getVkDevice(), allocateInfo, null, longBuffer),
-                    "Failed to allocate memory for image attachment"
-            );
-            this.vkMemory = longBuffer.get(0);
-
-
-            //Bind the image to the memory
-            VulkanUtils.check(
-                    VK10.vkBindImageMemory(logicalDevice.getVkDevice(), this.vkImage, this.vkMemory, 0),
-                    "Failed to bind image to memory"
-            );
+            this.vkMemory = memPtr.get(0);
         }
     }
 

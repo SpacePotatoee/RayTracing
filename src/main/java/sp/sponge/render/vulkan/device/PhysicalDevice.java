@@ -22,11 +22,16 @@ public class PhysicalDevice implements AutoCloseable {
     //Information about the different memory heaps the device supports
     private final VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
     //Fine-grained features supported by the device
-    private final VkPhysicalDeviceFeatures deviceFeatures;
+    private final VkPhysicalDeviceFeatures2 deviceFeatures;
     //Weird name. The actual device information like name and vendor
     private final VkPhysicalDeviceProperties2 deviceProperties;
     //What queue families are supported
     private final VkQueueFamilyProperties.Buffer deviceQueFamilyProperties;
+
+    //Information about what ray tracing things the device can do
+    private final VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingProperties;
+
+    private final VkPhysicalDeviceBufferDeviceAddressFeatures deviceAddressFeature;
 
 
     private static final List<String> DESIRED_DEVICE_EXTENSIONS = List.of(
@@ -47,8 +52,12 @@ public class PhysicalDevice implements AutoCloseable {
 
             IntBuffer buffer = stack.callocInt(1);
 
+            this.rayTracingProperties = VkPhysicalDeviceRayTracingPipelinePropertiesKHR.calloc()
+                    .sType$Default();
 
-            this.deviceProperties = VkPhysicalDeviceProperties2.calloc().sType$Default();
+            this.deviceProperties = VkPhysicalDeviceProperties2.calloc()
+                    .sType$Default()
+                    .pNext(rayTracingProperties);
             VK14.vkGetPhysicalDeviceProperties2(device, this.deviceProperties);
 
 
@@ -68,8 +77,12 @@ public class PhysicalDevice implements AutoCloseable {
             VK10.vkGetPhysicalDeviceQueueFamilyProperties(device, buffer, this.deviceQueFamilyProperties);
 
 
-            this.deviceFeatures = VkPhysicalDeviceFeatures.calloc();
-            VK10.vkGetPhysicalDeviceFeatures(device, this.deviceFeatures);
+            this.deviceAddressFeature = VkPhysicalDeviceBufferDeviceAddressFeatures.calloc()
+                    .sType$Default();
+            this.deviceFeatures = VkPhysicalDeviceFeatures2.calloc()
+                    .sType$Default()
+                    .pNext(this.deviceAddressFeature);
+            VK13.vkGetPhysicalDeviceFeatures2(device, this.deviceFeatures);
 
 
             this.deviceMemoryProperties = VkPhysicalDeviceMemoryProperties.calloc();
@@ -183,6 +196,10 @@ public class PhysicalDevice implements AutoCloseable {
         return numOfAllowedQueues == REQUIRED_QUEUE_FAMILIES.size();
     }
 
+    public VkPhysicalDeviceRayTracingPipelinePropertiesKHR getRayTracingProperties() {
+        return this.rayTracingProperties;
+    }
+
     public VkQueueFamilyProperties.Buffer getDeviceQueFamilyProperties() {
         return deviceQueFamilyProperties;
     }
@@ -191,7 +208,7 @@ public class PhysicalDevice implements AutoCloseable {
         return deviceProperties;
     }
 
-    public VkPhysicalDeviceFeatures getDeviceFeatures() {
+    public VkPhysicalDeviceFeatures2 getDeviceFeatures() {
         return deviceFeatures;
     }
 
@@ -213,10 +230,12 @@ public class PhysicalDevice implements AutoCloseable {
 
     @Override
     public void close() {
+        this.deviceAddressFeature.free();
         this.deviceExtensions.free();
         this.deviceMemoryProperties.free();
         this.deviceFeatures.free();
         this.deviceProperties.free();
         this.deviceQueFamilyProperties.free();
+        this.rayTracingProperties.free();
     }
 }
