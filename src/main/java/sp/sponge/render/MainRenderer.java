@@ -22,11 +22,14 @@ import sp.sponge.render.vulkan.raytracing.accelstruct.BLAS;
 import sp.sponge.render.vulkan.raytracing.accelstruct.TLAS;
 import sp.sponge.render.vulkan.raytracing.shader.ShaderBindingTable;
 import sp.sponge.render.vulkan.raytracing.shader.ShaderGroup;
-import sp.sponge.render.vulkan.screen.image.ImageView;
+import sp.sponge.render.vulkan.image.ImageView;
 import sp.sponge.render.vulkan.sync.Fence;
 import sp.sponge.render.vulkan.sync.Semaphore;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
+import sp.sponge.scene.objects.custom.obj.Bunny;
+import sp.sponge.scene.objects.custom.obj.Cube;
+import sp.sponge.scene.objects.custom.obj.Dragon;
 import sp.sponge.scene.objects.custom.obj.Sponza;
 
 import java.nio.ByteBuffer;
@@ -99,12 +102,19 @@ public class MainRenderer {
         this.descriptorSets = new DescriptorSets();
         this.initScene();
 
-        DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(this.vulkanCtx, VERTEX_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 0, 1, VK_SHADER_STAGE_RAYGEN_BIT_KHR);
+        DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(
+                this.vulkanCtx,
+                VERTEX_DESC_SET,
+                VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                0,
+                1,
+                VK_SHADER_STAGE_RAYGEN_BIT_KHR | VK_SHADER_STAGE_ANY_HIT_BIT_KHR
+        );
 
         DescriptorSet vertUniformDescSet = group.descriptorSet();
         DescriptorSetLayout vertexUnifDescLayout = group.layout();
 
-        vertexUniformBuffer = VulkanUtils.createCpuBuffer(this.vulkanCtx, 272, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        vertexUniformBuffer = VulkanUtils.createCpuBuffer(this.vulkanCtx, 280, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         vertUniformDescSet.setBuffer(
                 this.vulkanCtx,
                 vertexUniformBuffer,
@@ -127,7 +137,7 @@ public class MainRenderer {
 
     private void initScene() {
         this.camera.updateCamera();
-        SceneManager.addObject(new Sponza(false));
+        SceneManager.addObject(new Dragon(false));
         this.updateObjects(this.vulkanCtx, this.commandPool, this.graphicsQueue);
 
         this.blas = new BLAS(this.vulkanCtx, this.triangleBuffers, this.commandPool, this.graphicsQueue);
@@ -392,7 +402,9 @@ public class MainRenderer {
 
         this.camera.getInvProjectionMatrix().get(144, buffer);
         this.camera.getInvModelViewMatrix().get(208, buffer);
-        //272
+
+        buffer.putLong(272, this.triangleBuffers.getGpuAddress(this.vulkanCtx));
+        //280
 
         vkBuffer.unmap(this.vulkanCtx);
     }

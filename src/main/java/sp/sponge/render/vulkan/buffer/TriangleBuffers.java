@@ -3,12 +3,12 @@ package sp.sponge.render.vulkan.buffer;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.vma.Vma;
 import org.lwjgl.vulkan.KHRAccelerationStructure;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VK13;
 import org.lwjgl.vulkan.VkBufferCopy;
+import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.model.Mesh;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.device.command.CommandBuffer;
@@ -21,6 +21,7 @@ public class TriangleBuffers {
     private final BufferPair vertexBuffers;
     private int numOfTriangles;
     private ByteBuffer buffer;
+    private long gpuAddress = -1L;
 
     public TriangleBuffers(VulkanCtx ctx) {
         this.vulkanCtx = ctx;
@@ -38,10 +39,10 @@ public class TriangleBuffers {
             buffer.putFloat(pointA.z());
             buffer.putFloat(0);
 
-            buffer.putShort(Float.floatToFloat16(v1.normalX()));
-            buffer.putShort(Float.floatToFloat16(v1.normalY()));
-            buffer.putShort(Float.floatToFloat16(v1.normalZ()));
-            buffer.putShort((short) 0);
+            buffer.putFloat(v1.normalX());
+            buffer.putFloat(v1.normalY());
+            buffer.putFloat(v1.normalZ());
+            buffer.putFloat(0);
 
 
             Mesh.Vertex v2 = face.v2();
@@ -51,10 +52,10 @@ public class TriangleBuffers {
             buffer.putFloat(pointB.z());
             buffer.putFloat(0);
 
-            buffer.putShort(Float.floatToFloat16(v2.normalX()));
-            buffer.putShort(Float.floatToFloat16(v2.normalY()));
-            buffer.putShort(Float.floatToFloat16(v2.normalZ()));
-            buffer.putShort((short) 0);
+            buffer.putFloat(v2.normalX());
+            buffer.putFloat(v2.normalY());
+            buffer.putFloat(v2.normalZ());
+            buffer.putFloat(0);
 
 
             Mesh.Vertex v3 = face.v3();
@@ -64,10 +65,10 @@ public class TriangleBuffers {
             buffer.putFloat(pointC.z());
             buffer.putFloat(0);
 
-            buffer.putShort(Float.floatToFloat16(v3.normalX()));
-            buffer.putShort(Float.floatToFloat16(v3.normalY()));
-            buffer.putShort(Float.floatToFloat16(v3.normalZ()));
-            buffer.putShort((short) 0);
+            buffer.putFloat(v3.normalX());
+            buffer.putFloat(v3.normalY());
+            buffer.putFloat(v3.normalZ());
+            buffer.putFloat(0);
             this.numOfTriangles++;
         }
     }
@@ -124,6 +125,16 @@ public class TriangleBuffers {
 
     public long getGpuBuffer() {
         return this.vertexBuffers.gpuBuffer.getBufferPtr();
+    }
+
+    public long getGpuAddress(VulkanCtx ctx) {
+        if (gpuAddress == -1L) {
+            try (MemoryStack stack = MemoryStack.stackPush()) {
+                gpuAddress = VulkanUtils.getBufferGpuAddressConst(ctx, stack, this.vertexBuffers.gpuBuffer.getBufferPtr()).deviceAddress();
+            }
+        }
+
+        return gpuAddress;
     }
 
     private record BufferPair(VkBuffer cpuBuffer, VkBuffer gpuBuffer){}

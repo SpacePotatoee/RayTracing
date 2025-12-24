@@ -1,4 +1,4 @@
-package sp.sponge.render.vulkan.screen.image;
+package sp.sponge.render.vulkan.image;
 
 import org.lwjgl.vulkan.VK10;
 import sp.sponge.render.vulkan.VulkanCtx;

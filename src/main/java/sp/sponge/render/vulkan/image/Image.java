@@ -1,4 +1,4 @@
-package sp.sponge.render.vulkan.screen.image;
+package sp.sponge.render.vulkan.image;
 
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;

@@ -6,6 +6,8 @@ struct HitPayload{
     vec3 rayOrigin;
     vec3 rayDir;
     vec3 rayPos;
+
+    vec3 hitNormal;
 };
 
 layout(location = 0) rayPayloadInEXT HitPayload payload;

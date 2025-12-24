@@ -6,7 +6,7 @@ import org.lwjgl.vulkan.*;
 import sp.sponge.render.Window;
 import sp.sponge.render.vulkan.device.LogicalDevice;
 import sp.sponge.render.vulkan.device.Queue;
-import sp.sponge.render.vulkan.screen.image.ImageView;
+import sp.sponge.render.vulkan.image.ImageView;
 import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.sync.Semaphore;
 

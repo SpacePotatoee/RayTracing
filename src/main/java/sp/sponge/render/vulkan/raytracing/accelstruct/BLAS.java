@@ -19,7 +19,7 @@ import java.nio.LongBuffer;
 import static org.lwjgl.vulkan.KHRAccelerationStructure.*;
 
 public class BLAS {
-    private static final int STRIDE = Float.BYTES*4 + Short.BYTES*4;
+    private static final int STRIDE = Float.BYTES*8;
     private final long asHandle;
     private final long asDeviceAddress;
     private final VkBuffer blasBuffer;

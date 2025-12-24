@@ -1,13 +1,16 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 vec2 texCoord;
 
-struct HitPayload{
+struct HitPayload {
     vec3 hitValue;
     vec3 rayOrigin;
     vec3 rayDir;
     vec3 rayPos;
+
+    vec3 hitNormal;
 };
 
 layout(set = 0, binding = 0) uniform CameraInfo {
@@ -17,6 +20,8 @@ layout(set = 0, binding = 0) uniform CameraInfo {
 
     mat4 invProjMat;
     mat4 invModelViewMat;
+
+    uint64_t vertAddress;
 } cameraInfo;
 
 layout(set=1, binding=0) uniform accelerationStructureEXT accelStruct;

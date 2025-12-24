@@ -7,7 +7,7 @@ import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.device.LogicalDevice;
 import sp.sponge.render.vulkan.buffer.VkBuffer;
 import sp.sponge.render.vulkan.raytracing.accelstruct.TLAS;
-import sp.sponge.render.vulkan.screen.image.ImageView;
+import sp.sponge.render.vulkan.image.ImageView;
 
 import java.nio.LongBuffer;
 
