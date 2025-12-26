@@ -3,9 +3,9 @@ package sp.sponge.render.vulkan.pipeline.shaders;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VkShaderModuleCreateInfo;
+import sp.sponge.Sponge;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
-import sp.sponge.resources.ResourceManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -21,7 +21,7 @@ public class ShaderModule {
         this.shaderStage = shaderStage;
 
         try {
-            byte[] contents = Files.readAllBytes(ResourceManager.getAssetFile(shaderSpvFile).toPath());
+            byte[] contents = Files.readAllBytes(Sponge.getAssetFile(shaderSpvFile).toPath());
             this.shaderHandle = createShaderModule(ctx, contents);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,15 +1,18 @@
 package sp.sponge.render.vulkan.buffer.descriptors;
 
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.device.LogicalDevice;
 import sp.sponge.render.vulkan.buffer.VkBuffer;
+import sp.sponge.render.vulkan.image.texture.TextureSampler;
 import sp.sponge.render.vulkan.raytracing.accelstruct.TLAS;
 import sp.sponge.render.vulkan.image.ImageView;
 
 import java.nio.LongBuffer;
+import java.util.List;
 
 import static org.lwjgl.vulkan.VK10.VK_IMAGE_LAYOUT_GENERAL;
 
@@ -74,21 +77,40 @@ public class DescriptorSet {
         }
     }
 
-    public void setImage(VulkanCtx ctx, ImageView imageView, int binding) {
+    public void setImage(VulkanCtx ctx, ImageView imageView, @Nullable TextureSampler sampler, int descriptorType, int binding) {
+        this.setImages(ctx, List.of(imageView), sampler, descriptorType, binding);
+    }
+
+    public void setImages(VulkanCtx ctx, List<ImageView> imageViews, @Nullable TextureSampler sampler, int descriptorType, int binding) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            VkWriteDescriptorSet.Buffer descriptorSetBuffer = VkWriteDescriptorSet.calloc(1, stack);
+            int numOfImages = imageViews.size();
+            VkWriteDescriptorSet.Buffer descriptorSetBuffer = VkWriteDescriptorSet.calloc(numOfImages, stack);
+            for (int i = 0; i < numOfImages; i++) {
+                ImageView imageView = imageViews.get(i);
 
-            VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.calloc(1, stack)
-                    .imageView(imageView.getVkImageViewHandle())
-                    .imageLayout(VK_IMAGE_LAYOUT_GENERAL);
+                VkDescriptorImageInfo.Buffer imageInfo = VkDescriptorImageInfo.calloc(1, stack)
+                        .imageView(imageView.getVkImageViewHandle());
 
-            descriptorSetBuffer.get(0)
-                    .sType$Default()
-                    .dstSet(this.vkDescriptorSet)
-                    .dstBinding(binding)
-                    .descriptorType(VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
-                    .descriptorCount(1)
-                    .pImageInfo(imageInfo);
+//                if ((imageView.getUsage() & VK10.VK_IMAGE_USAGE_STORAGE_BIT) > 0) {
+                    imageInfo.imageLayout(VK_IMAGE_LAYOUT_GENERAL);
+//                } else {
+//                    imageInfo.imageLayout(VK10.VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+//                }
+
+                if (sampler != null) {
+                    imageInfo.sampler(sampler.getVkSampler());
+                }
+
+
+                descriptorSetBuffer.get(i)
+                        .sType$Default()
+                        .dstSet(this.vkDescriptorSet)
+                        .dstBinding(binding)
+                        .descriptorType(descriptorType)
+                        .descriptorCount(1)
+                        .pImageInfo(imageInfo);
+            }
+
 
             VK10.vkUpdateDescriptorSets(ctx.getLogicalDevice().getVkDevice(), descriptorSetBuffer, null);
         }

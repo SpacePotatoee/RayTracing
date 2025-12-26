@@ -16,16 +16,18 @@ struct HitPayload {
 layout(set = 0, binding = 0) uniform CameraInfo {
     mat4 projMat;
     mat4 modelViewMat;
-    vec4 cameraPos;
-
     mat4 invProjMat;
     mat4 invModelViewMat;
 
+    vec3 cameraPos;
     uint64_t vertAddress;
+
+    float time;
 } cameraInfo;
 
 layout(set=1, binding=0) uniform accelerationStructureEXT accelStruct;
 layout(set=2, binding=0, rgba8) uniform image2D outImage;
+layout(set=3, binding=0) uniform sampler2D SkyGradient;
 layout(location = 0) rayPayloadEXT HitPayload prd;
 
 vec3 projectAndDivide(mat4 projectionMat, vec3 position) {

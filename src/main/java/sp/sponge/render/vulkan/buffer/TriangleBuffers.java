@@ -119,8 +119,7 @@ public class TriangleBuffers {
     }
 
     public void free() {
-        this.vertexBuffers.cpuBuffer.free(this.vulkanCtx);
-        this.vertexBuffers.gpuBuffer.free(this.vulkanCtx);
+        this.vertexBuffers.free(this.vulkanCtx);
     }
 
     public long getGpuBuffer() {
@@ -137,5 +136,10 @@ public class TriangleBuffers {
         return gpuAddress;
     }
 
-    private record BufferPair(VkBuffer cpuBuffer, VkBuffer gpuBuffer){}
+    private record BufferPair(VkBuffer cpuBuffer, VkBuffer gpuBuffer){
+        public void free(VulkanCtx ctx) {
+            this.cpuBuffer.free(ctx);
+            this.gpuBuffer.free(ctx);
+        }
+    }
 }

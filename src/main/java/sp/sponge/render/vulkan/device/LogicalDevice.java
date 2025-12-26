@@ -52,6 +52,7 @@ public class LogicalDevice implements AutoCloseable {
                     .synchronization2(true);
 
             VkPhysicalDeviceFeatures2 features2 = VkPhysicalDeviceFeatures2.calloc(stack).sType$Default();
+            features2.features().shaderInt64(true);
             features2.pNext(features11.address());
             features11.pNext(features12.address());
             features12.pNext(features13.address());

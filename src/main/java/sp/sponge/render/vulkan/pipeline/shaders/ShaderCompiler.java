@@ -2,7 +2,6 @@ package sp.sponge.render.vulkan.pipeline.shaders;
 
 import org.lwjgl.util.shaderc.Shaderc;
 import sp.sponge.Sponge;
-import sp.sponge.resources.ResourceManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,8 +49,8 @@ public class ShaderCompiler {
         byte[] compiledShader;
         Logger logger = Sponge.getInstance().getLogger();
         try {
-            File originalFile = ResourceManager.getAssetFile(unCompiledShaderFile);
-            File compiledFile = ResourceManager.getAssetFile(unCompiledShaderFile + ".spv");
+            File originalFile = Sponge.getAssetFile(unCompiledShaderFile);
+            File compiledFile = Sponge.getAssetFile(unCompiledShaderFile + ".spv");
             if (!compiledFile.exists() || originalFile.lastModified() > compiledFile.lastModified()) {
                 logger.info("Compiling " + originalFile.getPath() + " to " + compiledFile.getPath());
 

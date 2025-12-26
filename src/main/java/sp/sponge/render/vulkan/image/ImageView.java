@@ -14,28 +14,30 @@ public class ImageView {
     private final int aspectMask;
     private final int mipLevels;
     private final long imageHandle;
+    private final long usage;
     private final long vkImageViewHandle;
     private VkImageSubresourceRange subresourceRange;
 
-    private ImageView(LogicalDevice logicalDevice, long imageHandle, int aspectMask, int mipLevels, int viewType, int format, int baseArrayLayer, int layerCount) {
+    private ImageView(LogicalDevice logicalDevice, long imageHandle, ImageViewBuilder builder) {
         this.logicalDevice = logicalDevice;
-        this.aspectMask = aspectMask;
-        this.mipLevels = mipLevels;
+        this.aspectMask = builder.aspectMask;
+        this.mipLevels = builder.mipLevels;
         this.imageHandle = imageHandle;
+        this.usage = builder.usage;
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
 
             VkImageViewCreateInfo createInfo = VkImageViewCreateInfo.calloc(stack)
                     .sType$Default()
                     .image(imageHandle)
-                    .viewType(viewType)
-                    .format(format)
+                    .viewType(builder.viewType)
+                    .format(builder.format)
                     .subresourceRange(vkImageSubresourceRange -> subresourceRange = vkImageSubresourceRange
                             .aspectMask(aspectMask)
                             .baseMipLevel(0)
                             .levelCount(mipLevels)
-                            .baseArrayLayer(baseArrayLayer)
-                            .layerCount(layerCount)
+                            .baseArrayLayer(builder.baseArrayLayer)
+                            .layerCount(builder.layerCount)
                     );
 
             LongBuffer imageViewHandlePtr = stack.mallocLong(1);
@@ -59,6 +61,10 @@ public class ImageView {
         return mipLevels;
     }
 
+    public long getUsage() {
+        return usage;
+    }
+
     public long getVkImageViewHandle() {
         return vkImageViewHandle;
     }
@@ -78,6 +84,7 @@ public class ImageView {
         int format;
         int baseArrayLayer;
         int layerCount;
+        int usage;
 
         public ImageViewBuilder() {
             this.aspectMask = VK10.VK_IMAGE_ASPECT_COLOR_BIT;
@@ -117,8 +124,13 @@ public class ImageView {
             return this;
         }
 
+        public ImageViewBuilder setUsage(int usage) {
+            this.usage = usage;
+            return this;
+        }
+
         public ImageView build(LogicalDevice logicalDevice, long imageHandle) {
-            return new ImageView(logicalDevice, imageHandle, this.aspectMask, this.mipLevels, this.viewType, this.format, this.baseArrayLayer, this.layerCount);
+            return new ImageView(logicalDevice, imageHandle, this);
         }
     }
 }

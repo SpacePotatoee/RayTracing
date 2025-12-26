@@ -42,7 +42,14 @@ public class VkBuffer {
             PointerBuffer memPtrBuffer = stack.callocPointer(1);
             LongBuffer longBuffer = stack.mallocLong(1);
             VulkanUtils.check(
-                    Vma.vmaCreateBuffer(ctx.getMemoryAllocator().getVmaHandle(), bufferCreateInfo, allocationCreateInfo, longBuffer, memPtrBuffer, null),
+                    Vma.vmaCreateBuffer(
+                            ctx.getMemoryAllocator().getVmaHandle(),
+                            bufferCreateInfo,
+                            allocationCreateInfo,
+                            longBuffer,
+                            memPtrBuffer,
+                            null
+                    ),
                     "Failed to create Buffer"
             );
             this.bufferPtr = longBuffer.get(0);

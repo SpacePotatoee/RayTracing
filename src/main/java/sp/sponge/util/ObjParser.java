@@ -2,7 +2,6 @@ package sp.sponge.util;
 
 import sp.sponge.Sponge;
 import sp.sponge.render.vulkan.model.Mesh;
-import sp.sponge.resources.ResourceManager;
 import sp.sponge.util.math.Vec3f;
 
 import java.io.File;
@@ -21,7 +20,7 @@ public class ObjParser {
             return cachedMeshes.get(pathToObjFile);
         }
 
-        File objFile = ResourceManager.getAssetFile(fullPath);
+        File objFile = Sponge.getAssetFile(fullPath);
         List<Vec3f> vertices = new ArrayList<>();
         List<Vec3f> normals = new ArrayList<>();
         List<Mesh.Face> faces = new ArrayList<>();
@@ -115,7 +114,7 @@ public class ObjParser {
                 mesh.addFace(face);
             }
             cachedMeshes.put(pathToObjFile, mesh);
-            Sponge.getInstance().getLogger().info("Generated " + totalFaces + " faces");
+            Sponge.getInstance().getLogger().info("Generated " + totalFaces + " triangles");
             return mesh;
 
         } catch (IOException e) {

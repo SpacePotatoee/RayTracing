@@ -1,4 +1,4 @@
-package sp.sponge.render.vulkan.image;
+package sp.sponge.render.vulkan.image.texture;
 
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.vulkan.VK10;
@@ -13,20 +13,23 @@ public class TextureSampler {
 
     private TextureSampler(VulkanCtx ctx, TextureSamplerBuilder builder) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
+            System.out.println(builder.filter);
             VkSamplerCreateInfo createInfo = VkSamplerCreateInfo.calloc(stack)
                     .sType$Default()
-                    .magFilter(builder.filter)
-                    .minFilter(builder.filter)
+                    .magFilter(VK10.VK_FILTER_LINEAR)
+                    .minFilter(VK10.VK_FILTER_LINEAR)
                     .addressModeU(builder.wrap)
                     .addressModeV(builder.wrap)
                     .addressModeW(builder.wrap)
                     .borderColor(builder.borderColor)
                     .unnormalizedCoordinates(false)
-                    .compareOp(VK10.VK_COMPARE_OP_NEVER)
-                    .mipmapMode(VK10.VK_SAMPLER_MIPMAP_MODE_NEAREST)
+                    .compareEnable(false)
+                    .compareOp(VK10.VK_COMPARE_OP_ALWAYS)
+                    .mipmapMode(VK10.VK_SAMPLER_MIPMAP_MODE_LINEAR)
                     .minLod(0.0f)
                     .maxLod(builder.mipMapLevels)
-                    .mipLodBias(0.0f);
+                    .mipLodBias(0.0f)
+                    .anisotropyEnable(false);
 
             LongBuffer longBuffer = stack.mallocLong(1);
             VulkanUtils.check(
@@ -53,26 +56,30 @@ public class TextureSampler {
         private int mipMapLevels;
 
         public TextureSamplerBuilder() {
-            this.filter = VK10.VK_FILTER_NEAREST;
+            this.filter = VK10.VK_FILTER_LINEAR;
             this.wrap = VK10.VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
             this.borderColor = 0;
-            this.mipMapLevels(1);
+            this.mipMapLevels = 1;
         }
 
-        public void filter(int filter) {
+        public TextureSamplerBuilder filter(int filter) {
             this.filter = filter;
+            return this;
         }
 
-        public void borderColor(int borderColor) {
+        public TextureSamplerBuilder borderColor(int borderColor) {
             this.borderColor = borderColor;
+            return this;
         }
 
-        public void wrap(int wrap) {
+        public TextureSamplerBuilder wrap(int wrap) {
             this.wrap = wrap;
+            return this;
         }
 
-        public void mipMapLevels(int mipMapLevels) {
+        public TextureSamplerBuilder mipMapLevels(int mipMapLevels) {
             this.mipMapLevels = mipMapLevels;
+            return this;
         }
 
         public TextureSampler build(VulkanCtx ctx) {

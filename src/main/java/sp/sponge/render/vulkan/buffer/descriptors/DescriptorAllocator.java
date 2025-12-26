@@ -11,6 +11,7 @@ import java.util.*;
 public class DescriptorAllocator {
     private static final List<Integer> desiredDescriptorTypes = List.of(
             VK10.VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             VK10.VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
             VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             KHRAccelerationStructure.VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR

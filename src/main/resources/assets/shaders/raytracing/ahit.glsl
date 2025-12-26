@@ -20,12 +20,13 @@ struct HitPayload{
 layout(set = 0, binding = 0) uniform CameraInfo {
     mat4 projMat;
     mat4 modelViewMat;
-    vec4 cameraPos;
-
     mat4 invProjMat;
     mat4 invModelViewMat;
 
+    vec3 cameraPos;
     uint64_t vertAddress;
+
+    float time;
 } cameraInfo;
 
 layout(buffer_reference, scalar) buffer Vertices {
@@ -35,7 +36,7 @@ layout(buffer_reference, scalar) buffer Vertices {
 layout(location = 0) rayPayloadInEXT HitPayload payload;
 hitAttributeEXT vec2 baryCoords;
 
-void main() {
+vec3 getNormal(vec3 bary) {
     int offset = STRIDE * (gl_PrimitiveID);
     Vertices vertices = Vertices(cameraInfo.vertAddress);
 
@@ -46,9 +47,13 @@ void main() {
     offset += 8;
     vec3 normal3 = vec3(vertices.f[offset], vertices.f[offset + 1], vertices.f[offset + 2]);
 
-    vec3 bary = vec3(baryCoords , 1.0 - baryCoords.x - baryCoords.y);
-    payload.hitNormal = vec3(normal1 * bary.z + normal2 * bary.x + normal3 * bary.y);
+    return vec3(normal1 * bary.z + normal2 * bary.x + normal3 * bary.y);
+}
 
+void main() {
+    vec3 bary = vec3(baryCoords , 1.0 - baryCoords.x - baryCoords.y);
+
+    payload.hitNormal = getNormal(bary);
     payload.hitValue = vec3(1.0, 0.0, 0.0);
     payload.rayPos = payload.rayOrigin + payload.rayDir * gl_HitTEXT;
 }
