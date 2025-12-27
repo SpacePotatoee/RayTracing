@@ -7,7 +7,7 @@ import sp.sponge.Sponge;
 import sp.sponge.render.vulkan.DescriptorSets;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
-import sp.sponge.render.vulkan.buffer.TriangleBuffers;
+import sp.sponge.render.vulkan.buffer.BufferSet;
 import sp.sponge.render.vulkan.buffer.UniformBlockUtil;
 import sp.sponge.render.vulkan.buffer.descriptors.DescriptorAllocator;
 import sp.sponge.render.vulkan.buffer.descriptors.DescriptorSet;
@@ -73,7 +73,8 @@ public class MainRenderer {
 
     private VkBuffer vertexUniformBuffer;
     private final DescriptorSets descriptorSets;
-    private final TriangleBuffers triangleBuffers;
+    private final BufferSet meshDataSet;
+    private final BufferSet vertexBufferSet;
     private RayTracingPipeline pipeline;
     private ShaderBindingTable shaderBindingTable;
 
@@ -99,7 +100,8 @@ public class MainRenderer {
         this.renderSemaphores = new Semaphore(this.vulkanCtx);
         this.presentSemaphores = new Semaphore(this.vulkanCtx);
 
-        this.triangleBuffers = new TriangleBuffers(this.vulkanCtx);
+        this.meshDataSet = new BufferSet(this.vulkanCtx, 1000, 0);
+        this.vertexBufferSet = new BufferSet(this.vulkanCtx, 50000000, VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | KHRAccelerationStructure.VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
 
         this.descriptorSets = new DescriptorSets();
     }
@@ -121,7 +123,7 @@ public class MainRenderer {
         DescriptorSet defUniformDescSet = defaultUniformGroup.descriptorSet();
         DescriptorSetLayout defUniformDescLayout = defaultUniformGroup.layout();
 
-        vertexUniformBuffer = VulkanUtils.createCpuBuffer(this.vulkanCtx, 284, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        vertexUniformBuffer = VulkanUtils.createCpuBuffer(this.vulkanCtx, 292, VK10.VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         defUniformDescSet.setBuffer(
                 this.vulkanCtx,
                 vertexUniformBuffer,
@@ -166,7 +168,7 @@ public class MainRenderer {
         SceneManager.addObject(new Sponza(false));
         this.updateObjects(this.vulkanCtx, this.commandPool, this.graphicsQueue);
 
-        this.blas = new BLAS(this.vulkanCtx, this.triangleBuffers, this.commandPool, this.graphicsQueue);
+        this.blas = new BLAS(this.vulkanCtx, this.vertexBufferSet, this.commandPool, this.graphicsQueue);
         this.tlas = new TLAS(this.vulkanCtx, new BLAS[]{this.blas}, this.commandPool, this.graphicsQueue);
 
         DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(
@@ -376,13 +378,13 @@ public class MainRenderer {
 
         cmdBuffer.beginRecordingPrimary();
 
-        this.triangleBuffers.startMapping();
+        this.vertexBufferSet.startMapping();
         for (SceneObject sceneObject : SceneManager.getSceneObjects()) {
-            this.triangleBuffers.putMesh(sceneObject.getTransformMatrix(), sceneObject.getMesh());
+            this.vertexBufferSet.putMesh(sceneObject.getTransformMatrix(), sceneObject.getMesh());
         }
-        this.triangleBuffers.stopMapping();
+        this.vertexBufferSet.stopMapping();
 
-        this.triangleBuffers.sendVerticesToGpu(cmdBuffer);
+        this.vertexBufferSet.sendVerticesToGpu(cmdBuffer);
 
         cmdBuffer.endRecording();
         cmdBuffer.submitAndWait(ctx, queue);
@@ -427,7 +429,8 @@ public class MainRenderer {
         uniformBlock.putMatrix4f(this.camera.getInvModelViewMatrix());
 
         uniformBlock.putVec3f(this.camera.getPosition());
-        uniformBlock.putLong(this.triangleBuffers.getGpuAddress(this.vulkanCtx));
+        uniformBlock.putLong(this.vertexBufferSet.getGpuAddress(this.vulkanCtx));
+        uniformBlock.putLong(this.meshDataSet.getGpuAddress(this.vulkanCtx));
 
         uniformBlock.putFloat((float) frame / 10000);
         //284
@@ -446,8 +449,6 @@ public class MainRenderer {
 
         this.renderSemaphores = new Semaphore(this.vulkanCtx);
         this.presentSemaphores = new Semaphore(this.vulkanCtx);
-
-        int numOfImages = this.vulkanCtx.getSwapChain().getNumOfImages();
     }
 
     public VulkanCtx getVulkanCtx() {
@@ -465,7 +466,7 @@ public class MainRenderer {
 
 
         this.pipeline.free(this.vulkanCtx);
-        this.triangleBuffers.free();
+        this.vertexBufferSet.free();
         this.presentSemaphores.free(this.vulkanCtx);
         this.renderSemaphores.free(this.vulkanCtx);
         this.fences.close(this.vulkanCtx);

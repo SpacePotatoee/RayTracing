@@ -6,7 +6,7 @@ import org.lwjgl.util.vma.Vma;
 import org.lwjgl.vulkan.*;
 import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
-import sp.sponge.render.vulkan.buffer.TriangleBuffers;
+import sp.sponge.render.vulkan.buffer.BufferSet;
 import sp.sponge.render.vulkan.buffer.VkBuffer;
 import sp.sponge.render.vulkan.device.Queue;
 import sp.sponge.render.vulkan.device.command.CommandBuffer;
@@ -24,15 +24,15 @@ public class BLAS {
     private final long asDeviceAddress;
     private final VkBuffer blasBuffer;
 
-    public BLAS(VulkanCtx ctx, TriangleBuffers triangleBuffers, CommandPool commandPool, Queue queue) {
+    public BLAS(VulkanCtx ctx, BufferSet bufferSet, CommandPool commandPool, Queue queue) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            int numOfTriangles = triangleBuffers.getNumOfTriangles();
+            int numOfTriangles = bufferSet.getNumOfTriangles();
             VkDevice logicalDevice = ctx.getLogicalDevice().getVkDevice();
 
             //Add geometry to the acceleration structure
             VkAccelerationStructureGeometryKHR.Buffer geometry = VkAccelerationStructureGeometryKHR.calloc(1, stack);
 
-            VkDeviceOrHostAddressConstKHR vertexAddress = VulkanUtils.getBufferGpuAddressConst(ctx, stack, triangleBuffers.getGpuBuffer());
+            VkDeviceOrHostAddressConstKHR vertexAddress = VulkanUtils.getBufferGpuAddressConst(ctx, stack, bufferSet.getGpuBuffer());
 
             VkBuffer transformBuffer = createTransformBuffer(ctx);
             VkDeviceOrHostAddressConstKHR transformAddress = VulkanUtils.getBufferGpuAddressConst(ctx, stack, transformBuffer.getBufferPtr());

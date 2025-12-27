@@ -4,7 +4,8 @@
 
 vec2 texCoord;
 
-struct HitPayload {
+struct Ray {
+    bool hit;
     vec3 hitValue;
     vec3 rayOrigin;
     vec3 rayDir;
@@ -21,14 +22,59 @@ layout(set = 0, binding = 0) uniform CameraInfo {
 
     vec3 cameraPos;
     uint64_t vertAddress;
+    uint64_t meshAddress;
 
     float time;
 } cameraInfo;
 
+const vec3 UP_DIR = vec3(0.0, 1.0, 0.0);
+const float PI = 3.141592;
+
+//float TIME = mod(cameraInfo.time * 5, 1.0);
+float TIME = 0.23;
+float angle = (TIME * 360 - 90) * (PI * 0.005555555555556);
+vec3 SUN_DIR = normalize(vec3(-cos(angle), -sin(angle), 0.1));
+vec3 MOON_DIR = vec3(-SUN_DIR.x, -SUN_DIR.y, SUN_DIR.z);
+
 layout(set=1, binding=0) uniform accelerationStructureEXT accelStruct;
 layout(set=2, binding=0, rgba8) uniform image2D outImage;
 layout(set=3, binding=0) uniform sampler2D SkyGradient;
-layout(location = 0) rayPayloadEXT HitPayload prd;
+layout(location = 0) rayPayloadEXT Ray ray;
+
+//////////////////////////////////////////////////////////////////
+////                          RANDOM                          ////
+//////////////////////////////////////////////////////////////////
+
+float rand(vec2 p) {
+    vec3 p3  = fract(vec3(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z) * 2.0 - 1.0;
+}
+
+float rand2(vec2 p) {
+    float value = rand(p);
+    return value / cos(value);
+}
+
+vec3 getRandVec3(vec2 value) {
+    return vec3(rand2(value * 500.634), rand2(value * 500.763), rand2(value * 500.524));
+}
+
+vec3 getRandomDir(vec2 value) {
+    return normalize(getRandVec3(value));
+}
+
+vec3 getReflectionDir(vec3 incomingDir, vec3 normal, float rng) {
+    vec3 randDir = getRandomDir((texCoord+1) * 2.6734563 * (rng * 43.652346));
+    randDir = normalize(normal + randDir);
+    vec3 reflectionDir = reflect(incomingDir, normal);
+
+    return mix(randDir, reflectionDir, 0);
+}
+
+//////////////////////////////////////////////////////////////////
+////                          CAMERA                          ////
+//////////////////////////////////////////////////////////////////
 
 vec3 projectAndDivide(mat4 projectionMat, vec3 position) {
     vec4 homogeneousPos = projectionMat * vec4(position, 1.0);
@@ -48,18 +94,76 @@ vec3 getRayDir() {
     return normalize(screenToLocalSpace(1.0));
 }
 
+//////////////////////////////////////////////////////////////////
+////                        ENVIRONMENT                       ////
+//////////////////////////////////////////////////////////////////
+
+vec3 getSkyColor(in vec3 dir) {
+    float upDot = clamp(dot(UP_DIR, dir), 0.0, 1.0);
+    float sun = pow(clamp(dot(dir, SUN_DIR), 0.0, 1.0), 100);
+    float moon = smoothstep(0.995, 1.0,clamp(dot(dir, MOON_DIR), 0.0, 1.0));
+    vec3 horizonColor = texture(SkyGradient, vec2(0.25, TIME)).rgb;
+    vec3 upColor = texture(SkyGradient, vec2(0.75, TIME)).rgb;
+
+    return mix(horizonColor, upColor, upDot) + sun + moon;
+}
+
 void main() {
+    vec3 throughPut = vec3(1.0);
+    vec3 light = vec3(0.0);
     const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5f, 0.5f);
     const vec2 invUv = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
     texCoord = vec2(invUv.x, 1.0 - invUv.y);
 
-    prd.rayDir = getRayDir();
-    prd.rayOrigin = cameraInfo.cameraPos.xyz;
+    ray.rayDir = getRayDir();
+    ray.rayOrigin = cameraInfo.cameraPos.xyz;
+    ray.hit = false;
+
+    //Primary rays
+    traceRayEXT(accelStruct, gl_RayFlagsNoneEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
+    bool prevHit = ray.hit;
+    vec3 prevPos = ray.rayPos;
+    vec3 prevNormal = ray.hitNormal;
+    throughPut = ray.hitValue;
+
+    if (ray.hit) {
+        //Shadow rays
+        ray.hit = true;
+        ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
+        ray.rayDir = mix(SUN_DIR, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
+        if (dot(ray.hitNormal, SUN_DIR) >= -0.001) {
+            traceRayEXT(accelStruct, gl_RayFlagsTerminateOnFirstHitEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
+        }
 
 
-    traceRayEXT(accelStruct, gl_RayFlagsNoneEXT, 0xFFu, 0, 0, 0, prd.rayOrigin, 0.001, prd.rayDir, 10000, 0);
+        if (!ray.hit) {
+            light += throughPut * mix(vec3(1.0), getSkyColor(ray.rayDir), 0.1);
+        }
+
+        ray.hit = prevHit;
+        ray.rayPos = prevPos;
+        ray.hitNormal = prevNormal;
+
+        //Secondary rays
+        for (int i = 0; i < 5; i++) {
+            ray.hit = false;
+            ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
+            ray.rayDir = getReflectionDir(ray.rayDir, ray.hitNormal, (i+1) + 0.2345 + cameraInfo.time);
+            traceRayEXT(accelStruct, gl_RayFlagsNoneEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
+
+            if (!ray.hit) {
+                light += throughPut * getSkyColor(ray.rayDir);
+                break;
+            }
+
+//            outColor += ray.hitValue;
+        }
+    } else {
+        light = ray.hitValue;
+    }
+
+
 
     ivec2 pixelCoord = ivec2(gl_LaunchIDEXT.xy);
-
-    imageStore(outImage, pixelCoord, vec4(prd.hitValue, 1.f));
+    imageStore(outImage, pixelCoord, vec4(light, 1.f));
 }

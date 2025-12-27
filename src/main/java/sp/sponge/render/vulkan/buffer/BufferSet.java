@@ -4,7 +4,6 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.vma.Vma;
-import org.lwjgl.vulkan.KHRAccelerationStructure;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VK13;
 import org.lwjgl.vulkan.VkBufferCopy;
@@ -15,17 +14,18 @@ import sp.sponge.render.vulkan.device.command.CommandBuffer;
 
 import java.nio.ByteBuffer;
 
-public class TriangleBuffers {
-    private static final int SIZE = 50000000;
+public class BufferSet {
+    private final int SIZE;
     private final VulkanCtx vulkanCtx;
     private final BufferPair vertexBuffers;
     private int numOfTriangles;
     private ByteBuffer buffer;
     private long gpuAddress = -1L;
 
-    public TriangleBuffers(VulkanCtx ctx) {
+    public BufferSet(VulkanCtx ctx, int size, int usage) {
         this.vulkanCtx = ctx;
-        this.vertexBuffers = createBufferPair(ctx, false);
+        this.SIZE = size;
+        this.vertexBuffers = createBufferPair(ctx, usage);
     }
 
     public void putMesh(Matrix4f transform, Mesh mesh) {
@@ -94,9 +94,7 @@ public class TriangleBuffers {
         }
     }
 
-    private BufferPair createBufferPair(VulkanCtx ctx, boolean index) {
-        int usage = index ? VK10.VK_BUFFER_USAGE_INDEX_BUFFER_BIT : VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-
+    private BufferPair createBufferPair(VulkanCtx ctx, int usage) {
         VkBuffer cpuBuffer = new VkBuffer(ctx, SIZE,
                 VK10.VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                 Vma.VMA_MEMORY_USAGE_AUTO,
@@ -105,7 +103,7 @@ public class TriangleBuffers {
         );
 
         VkBuffer gpuBuffer = new VkBuffer(ctx, SIZE,
-                VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage | VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK13.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | KHRAccelerationStructure.VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR,
+                VK10.VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage | VK10.VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK13.VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
                 Vma.VMA_MEMORY_USAGE_AUTO,
                 Vma.VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
                 VK10.VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT

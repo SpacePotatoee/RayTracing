@@ -8,7 +8,8 @@
 //8 floats. 3 verts
 const int STRIDE = 8 * 3;
 
-struct HitPayload{
+struct Ray {
+    bool hit;
     vec3 hitValue;
     vec3 rayOrigin;
     vec3 rayDir;
@@ -25,6 +26,7 @@ layout(set = 0, binding = 0) uniform CameraInfo {
 
     vec3 cameraPos;
     uint64_t vertAddress;
+    uint64_t meshAddress;
 
     float time;
 } cameraInfo;
@@ -33,7 +35,7 @@ layout(buffer_reference, scalar) buffer Vertices {
     float f[];
 };
 
-layout(location = 0) rayPayloadInEXT HitPayload payload;
+layout(location = 0) rayPayloadInEXT Ray ray;
 hitAttributeEXT vec2 baryCoords;
 
 vec3 getNormal(vec3 bary) {
@@ -52,8 +54,8 @@ vec3 getNormal(vec3 bary) {
 
 void main() {
     vec3 bary = vec3(baryCoords , 1.0 - baryCoords.x - baryCoords.y);
-
-    payload.hitNormal = getNormal(bary);
-    payload.hitValue = vec3(1.0, 0.0, 0.0);
-    payload.rayPos = payload.rayOrigin + payload.rayDir * gl_HitTEXT;
+    ray.hit = true;
+    ray.hitNormal = getNormal(bary);
+    ray.hitValue = vec3(1.0, 0.0, 0.0);
+    ray.rayPos = ray.rayOrigin + ray.rayDir * gl_HitTEXT;
 }

@@ -1,7 +1,8 @@
 #version 460
 #extension GL_EXT_ray_tracing : enable
 
-struct HitPayload{
+struct Ray {
+    bool hit;
     vec3 hitValue;
     vec3 rayOrigin;
     vec3 rayDir;
@@ -10,13 +11,20 @@ struct HitPayload{
     vec3 hitNormal;
 };
 
-layout(location = 0) rayPayloadInEXT HitPayload payload;
+struct Material {
+    vec3 color;
+    vec3 emissiveColor;
+    float emissiveStrength;
+};
+
+layout(set = 4, binding = 0) uniform MaterialBuffer {
+    Material materials[];
+} matBuffer;
+
+layout(location = 0) rayPayloadInEXT Ray ray;
 
 hitAttributeEXT vec2 baryCoords;
 
 void main() {
-//    payload.hitValue = vec3(baryCoords, 1.0 - baryCoords.x - baryCoords.y);
-//    float light = dot(vec3(1.0), payload.hitNormal);
-//    payload.hitValue = vec3(1) * light;
-    payload.hitValue = payload.hitNormal;
+    ray.hitValue = vec3(1.0);
 }
