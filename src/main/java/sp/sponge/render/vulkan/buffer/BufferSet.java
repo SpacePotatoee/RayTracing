@@ -1,15 +1,12 @@
 package sp.sponge.render.vulkan.buffer;
 
-import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.vma.Vma;
 import org.lwjgl.vulkan.VK10;
 import org.lwjgl.vulkan.VK13;
 import org.lwjgl.vulkan.VkBufferCopy;
-import sp.sponge.render.vulkan.VulkanUtils;
-import sp.sponge.render.vulkan.model.Mesh;
 import sp.sponge.render.vulkan.VulkanCtx;
+import sp.sponge.render.vulkan.VulkanUtils;
 import sp.sponge.render.vulkan.device.command.CommandBuffer;
 
 import java.nio.ByteBuffer;
@@ -17,80 +14,30 @@ import java.nio.ByteBuffer;
 public class BufferSet {
     private final int SIZE;
     private final VulkanCtx vulkanCtx;
-    private final BufferPair vertexBuffers;
-    private int numOfTriangles;
+    private final BufferPair bufferPair;
     private ByteBuffer buffer;
     private long gpuAddress = -1L;
 
     public BufferSet(VulkanCtx ctx, int size, int usage) {
         this.vulkanCtx = ctx;
         this.SIZE = size;
-        this.vertexBuffers = createBufferPair(ctx, usage);
-    }
-
-    public void putMesh(Matrix4f transform, Mesh mesh) {
-        if (buffer == null) return;
-
-        for (Mesh.Face face : mesh.getFaces()) {
-            Mesh.Vertex v1 = face.v1();
-            Vector3f pointA = transform.transformPosition(v1.x(), v1.y(), v1.z(), new Vector3f());
-            buffer.putFloat(pointA.x());
-            buffer.putFloat(pointA.y());
-            buffer.putFloat(pointA.z());
-            buffer.putFloat(0);
-
-            buffer.putFloat(v1.normalX());
-            buffer.putFloat(v1.normalY());
-            buffer.putFloat(v1.normalZ());
-            buffer.putFloat(0);
-
-
-            Mesh.Vertex v2 = face.v2();
-            Vector3f pointB = transform.transformPosition(v2.x(), v2.y(), v2.z(), new Vector3f());
-            buffer.putFloat(pointB.x());
-            buffer.putFloat(pointB.y());
-            buffer.putFloat(pointB.z());
-            buffer.putFloat(0);
-
-            buffer.putFloat(v2.normalX());
-            buffer.putFloat(v2.normalY());
-            buffer.putFloat(v2.normalZ());
-            buffer.putFloat(0);
-
-
-            Mesh.Vertex v3 = face.v3();
-            Vector3f pointC = transform.transformPosition(v3.x(), v3.y(), v3.z(), new Vector3f());
-            buffer.putFloat(pointC.x());
-            buffer.putFloat(pointC.y());
-            buffer.putFloat(pointC.z());
-            buffer.putFloat(0);
-
-            buffer.putFloat(v3.normalX());
-            buffer.putFloat(v3.normalY());
-            buffer.putFloat(v3.normalZ());
-            buffer.putFloat(0);
-            this.numOfTriangles++;
-        }
+        this.bufferPair = createBufferPair(ctx, usage);
     }
 
     public void startMapping() {
-        this.buffer = this.vertexBuffers.cpuBuffer().map(this.vulkanCtx);
+        this.buffer = this.bufferPair.cpuBuffer().map(this.vulkanCtx);
     }
 
     public void stopMapping() {
-        this.vertexBuffers.cpuBuffer().unmap(this.vulkanCtx);
+        this.bufferPair.cpuBuffer().unmap(this.vulkanCtx);
         this.buffer = null;
     }
 
-    public void sendVerticesToGpu(CommandBuffer commandBuffer) {
-        this.sendDataToGpu(commandBuffer, this.vertexBuffers);
-    }
-
-    private void sendDataToGpu(CommandBuffer commandBuffer, BufferPair pair) {
+    public void sendDataToGpu(CommandBuffer commandBuffer) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkBufferCopy.Buffer copyRegion = VkBufferCopy.calloc(1, stack)
-                    .srcOffset(0).dstOffset(0).size(pair.cpuBuffer().getRequestedSize());
-            VK10.vkCmdCopyBuffer(commandBuffer.getVkCommandBuffer(), pair.cpuBuffer().getBufferPtr(), pair.gpuBuffer().getBufferPtr(), copyRegion);
+                    .srcOffset(0).dstOffset(0).size(bufferPair.cpuBuffer().getRequestedSize());
+            VK10.vkCmdCopyBuffer(commandBuffer.getVkCommandBuffer(), bufferPair.cpuBuffer().getBufferPtr(), bufferPair.gpuBuffer().getBufferPtr(), copyRegion);
         }
     }
 
@@ -112,29 +59,29 @@ public class BufferSet {
         return new BufferPair(cpuBuffer, gpuBuffer);
     }
 
-    public int getNumOfTriangles() {
-        return numOfTriangles;
+    public ByteBuffer getBuffer() {
+        return buffer;
     }
 
     public void free() {
-        this.vertexBuffers.free(this.vulkanCtx);
+        this.bufferPair.free(this.vulkanCtx);
     }
 
     public long getGpuBuffer() {
-        return this.vertexBuffers.gpuBuffer.getBufferPtr();
+        return this.bufferPair.gpuBuffer.getBufferPtr();
     }
 
     public long getGpuAddress(VulkanCtx ctx) {
         if (gpuAddress == -1L) {
             try (MemoryStack stack = MemoryStack.stackPush()) {
-                gpuAddress = VulkanUtils.getBufferGpuAddressConst(ctx, stack, this.vertexBuffers.gpuBuffer.getBufferPtr()).deviceAddress();
+                gpuAddress = VulkanUtils.getBufferGpuAddressConst(ctx, stack, this.bufferPair.gpuBuffer.getBufferPtr()).deviceAddress();
             }
         }
 
         return gpuAddress;
     }
 
-    private record BufferPair(VkBuffer cpuBuffer, VkBuffer gpuBuffer){
+    public record BufferPair(VkBuffer cpuBuffer, VkBuffer gpuBuffer){
         public void free(VulkanCtx ctx) {
             this.cpuBuffer.free(ctx);
             this.gpuBuffer.free(ctx);

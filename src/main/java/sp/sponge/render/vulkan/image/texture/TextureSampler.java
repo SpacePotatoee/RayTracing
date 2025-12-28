@@ -13,7 +13,6 @@ public class TextureSampler {
 
     private TextureSampler(VulkanCtx ctx, TextureSamplerBuilder builder) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            System.out.println(builder.filter);
             VkSamplerCreateInfo createInfo = VkSamplerCreateInfo.calloc(stack)
                     .sType$Default()
                     .magFilter(VK10.VK_FILTER_LINEAR)

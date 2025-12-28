@@ -15,7 +15,11 @@ public class Sponge {
     private RunFiles runFiles;
     private final TextureManager textureManager;
 
+    private int fpsCounter = 0;
+    private long updateTime = 0L;
+
     public Sponge() {
+        updateTime = System.currentTimeMillis();
         INSTANCE = this;
         this.SPONGE_LOGGER = Logger.getLogger("sponge");
         this.mainRenderer = new MainRenderer();
@@ -27,6 +31,12 @@ public class Sponge {
     }
 
     public void mainLoop() {
+        fpsCounter++;
+        if (System.currentTimeMillis() >= updateTime + 1000L) {
+            System.out.println(fpsCounter);
+            fpsCounter = 0;
+            updateTime = System.currentTimeMillis();
+        }
         Window window = Window.getWindow();
         window.pollEvents();
 

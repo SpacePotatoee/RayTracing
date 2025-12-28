@@ -6,10 +6,10 @@ import sp.sponge.util.objects.Transformation;
 
 public class Sponza extends AbstractObjObject {
     public Sponza(boolean fixed) {
-        super(Objects.SPONZA, fixed, "sponza1");
+        super(Objects.SPONZA, fixed, "sponza");
     }
 
     public Sponza(Transformation transformation, boolean fixed) {
-        super(Objects.SPONZA, transformation, fixed, "sponza1");
+        super(Objects.SPONZA, transformation, fixed, "sponza");
     }
 }

@@ -4,14 +4,19 @@
 
 vec2 texCoord;
 
+struct Material {
+    vec4 color;
+    vec4 emissiveColor;
+};
+
 struct Ray {
     bool hit;
     vec3 hitValue;
     vec3 rayOrigin;
     vec3 rayDir;
     vec3 rayPos;
-
     vec3 hitNormal;
+    Material hitMaterial;
 };
 
 layout(set = 0, binding = 0) uniform CameraInfo {
@@ -31,14 +36,15 @@ const vec3 UP_DIR = vec3(0.0, 1.0, 0.0);
 const float PI = 3.141592;
 
 //float TIME = mod(cameraInfo.time * 5, 1.0);
-float TIME = 0.23;
+float TIME = 0.0;
 float angle = (TIME * 360 - 90) * (PI * 0.005555555555556);
 vec3 SUN_DIR = normalize(vec3(-cos(angle), -sin(angle), 0.1));
 vec3 MOON_DIR = vec3(-SUN_DIR.x, -SUN_DIR.y, SUN_DIR.z);
 
 layout(set=1, binding=0) uniform accelerationStructureEXT accelStruct;
 layout(set=2, binding=0, rgba8) uniform image2D outImage;
-layout(set=3, binding=0) uniform sampler2D SkyGradient;
+layout(set=3, binding=0) uniform sampler2D prevImage;
+layout(set=4, binding=0) uniform sampler2D SkyGradient;
 layout(location = 0) rayPayloadEXT Ray ray;
 
 //////////////////////////////////////////////////////////////////
@@ -109,6 +115,7 @@ vec3 getSkyColor(in vec3 dir) {
 }
 
 void main() {
+    ivec2 pixelCoord = ivec2(gl_LaunchIDEXT.xy);
     vec3 throughPut = vec3(1.0);
     vec3 light = vec3(0.0);
     const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5f, 0.5f);
@@ -124,20 +131,23 @@ void main() {
     bool prevHit = ray.hit;
     vec3 prevPos = ray.rayPos;
     vec3 prevNormal = ray.hitNormal;
-    throughPut = ray.hitValue;
+    throughPut *= ray.hitValue;
 
-    if (ray.hit) {
+    if (ray.hit && ray.hitMaterial.emissiveColor.a <= 0) {
+        bool moon = TIME > 0.25 && TIME < 0.75;
+        vec3 shadowDir = moon ? MOON_DIR : SUN_DIR;
+
         //Shadow rays
         ray.hit = true;
         ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
-        ray.rayDir = mix(SUN_DIR, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
-        if (dot(ray.hitNormal, SUN_DIR) >= -0.001) {
+        ray.rayDir = mix(shadowDir, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
+        if (dot(ray.hitNormal, shadowDir) >= -0.001) {
             traceRayEXT(accelStruct, gl_RayFlagsTerminateOnFirstHitEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
         }
 
 
         if (!ray.hit) {
-            light += throughPut * mix(vec3(1.0), getSkyColor(ray.rayDir), 0.1);
+            light += throughPut * mix(vec3(moon ? 0.1 : 1.0), getSkyColor(ray.rayDir), 0.1);
         }
 
         ray.hit = prevHit;
@@ -145,25 +155,35 @@ void main() {
         ray.hitNormal = prevNormal;
 
         //Secondary rays
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             ray.hit = false;
             ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
             ray.rayDir = getReflectionDir(ray.rayDir, ray.hitNormal, (i+1) + 0.2345 + cameraInfo.time);
             traceRayEXT(accelStruct, gl_RayFlagsNoneEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
 
             if (!ray.hit) {
-                light += throughPut * getSkyColor(ray.rayDir);
+                light += throughPut * (moon ? vec3(0.1) : getSkyColor(ray.rayDir));
                 break;
-            }
+            } else {
+                light += ray.hitMaterial.emissiveColor.rgb * ray.hitMaterial.emissiveColor.a * throughPut;
+                throughPut *= ray.hitMaterial.color.rgb;
 
-//            outColor += ray.hitValue;
+                if (ray.hitMaterial.emissiveColor.a > 0) {
+                    break;
+                }
+            }
         }
+
+        light = mix(light, texture(prevImage, vec2(texCoord.x, -texCoord.y)).rgb, 0.95);
+
     } else {
-        light = ray.hitValue;
+        if (ray.hitMaterial.emissiveColor.a > 0) {
+            light = ray.hitMaterial.emissiveColor.rgb;
+        } else {
+            light = ray.hitValue;
+        }
     }
 
 
-
-    ivec2 pixelCoord = ivec2(gl_LaunchIDEXT.xy);
     imageStore(outImage, pixelCoord, vec4(light, 1.f));
 }

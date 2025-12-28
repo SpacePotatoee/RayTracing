@@ -7,11 +7,13 @@ public class Mesh {
     private final Face[] faces;
     private Material material;
     private Vector3f color;
+    private Vector3f emissiveColor;
     private int currentFaceCount;
 
     public Mesh(int numberOfFaces) {
         this.faces = new Face[numberOfFaces];
         this.color = new Vector3f(0.5f);
+        this.emissiveColor = new Vector3f(0.0f);
         this.material = new Material();
     }
 
@@ -41,8 +43,13 @@ public class Mesh {
     }
 
     public Vector3f getColor() {
-        return this.color;
+        return this.material.getColor();
     }
+
+    public Vector3f getEmissiveColor() {
+        return this.material.getEmissiveColor();
+    }
+
 
     public void setColor(float red, float green, float blue) {
         this.setColor(new Vector3f(red, green, blue));
@@ -52,6 +59,13 @@ public class Mesh {
         this.color = color;
     }
 
+    public void setEmissiveColor(float red, float green, float blue) {
+        this.setEmissiveColor(new Vector3f(red, green, blue));
+    }
+
+    private void setEmissiveColor(Vector3f color) {
+        this.emissiveColor = color;
+    }
 
 
     public record Vertex(float x, float y, float z, float normalX, float normalY, float normalZ){}

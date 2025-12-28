@@ -2,14 +2,19 @@
 #extension GL_EXT_ray_tracing : enable
 #extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
+struct Material {
+    vec4 color;
+    vec4 emissiveColor;
+};
+
 struct Ray {
     bool hit;
     vec3 hitValue;
     vec3 rayOrigin;
     vec3 rayDir;
     vec3 rayPos;
-
     vec3 hitNormal;
+    Material hitMaterial;
 };
 
 layout(set = 0, binding = 0) uniform CameraInfo {
@@ -29,13 +34,13 @@ const vec3 UP_DIR = vec3(0.0, 1.0, 0.0);
 const float PI = 3.141592;
 
 //float TIME = mod(cameraInfo.time * 5, 1.0);
-float TIME = 0.23;
+float TIME = 0.0;
 float angle = (TIME * 360 - 90) * (PI / 180);
 vec3 SUN_DIR = normalize(vec3(-cos(angle), -sin(angle), 0.1));
 vec3 MOON_DIR = vec3(-SUN_DIR.x, -SUN_DIR.y, SUN_DIR.z);
 
 layout(location = 0) rayPayloadInEXT Ray ray;
-layout(set=3, binding=0) uniform sampler2D SkyGradient;
+layout(set=4, binding=0) uniform sampler2D SkyGradient;
 
 vec3 getSkyColor(in vec3 dir) {
     float upDot = clamp(dot(UP_DIR, dir), 0.0, 1.0);
@@ -50,4 +55,6 @@ vec3 getSkyColor(in vec3 dir) {
 void main() {
     ray.hit = false;
     ray.hitValue = getSkyColor(ray.rayDir);
+    ray.hitMaterial = Material(vec4(0.0), vec4(0.0));
+//    ray.hitValue = vec3(0.0);
 }

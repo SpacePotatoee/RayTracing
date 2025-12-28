@@ -34,6 +34,10 @@ public class Material {
         return emissiveColor;
     }
 
+    public void setEmissiveColor(float red, float green, float blue) {
+        this.setEmissiveColor(new Vector3f(red, green, blue));
+    }
+
     public void setEmissiveColor(Vector3f emissiveColor) {
         this.emissiveColor = emissiveColor;
     }

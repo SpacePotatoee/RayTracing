@@ -31,7 +31,7 @@ public class Camera {
 
     public void updateCamera() {
         this.moved = false;
-        float speed = 0.05f;
+        float speed = 0.2f;
         Vec3f rotation = this.getRotationVector();
         if (Keybinds.FORWARDS.isPressed()) {
             this.moved = true;

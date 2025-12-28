@@ -6,7 +6,12 @@
 #extension GL_EXT_buffer_reference2 : require
 
 //8 floats. 3 verts
-const int STRIDE = 8 * 3;
+const int STRIDE = (8 * 3);
+
+struct Material {
+    vec4 color;
+    vec4 emissiveColor;
+};
 
 struct Ray {
     bool hit;
@@ -14,8 +19,8 @@ struct Ray {
     vec3 rayOrigin;
     vec3 rayDir;
     vec3 rayPos;
-
     vec3 hitNormal;
+    Material hitMaterial;
 };
 
 layout(set = 0, binding = 0) uniform CameraInfo {
@@ -39,7 +44,7 @@ layout(location = 0) rayPayloadInEXT Ray ray;
 hitAttributeEXT vec2 baryCoords;
 
 vec3 getNormal(vec3 bary) {
-    int offset = STRIDE * (gl_PrimitiveID);
+    int offset = STRIDE * gl_PrimitiveID;
     Vertices vertices = Vertices(cameraInfo.vertAddress);
 
     offset += 4;
@@ -56,6 +61,6 @@ void main() {
     vec3 bary = vec3(baryCoords , 1.0 - baryCoords.x - baryCoords.y);
     ray.hit = true;
     ray.hitNormal = getNormal(bary);
-    ray.hitValue = vec3(1.0, 0.0, 0.0);
+    ray.hitValue = vec3(0.0, 0.0, 0.0);
     ray.rayPos = ray.rayOrigin + ray.rayDir * gl_HitTEXT;
 }
