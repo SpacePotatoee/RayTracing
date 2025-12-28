@@ -30,10 +30,7 @@ import sp.sponge.render.vulkan.sync.Fence;
 import sp.sponge.render.vulkan.sync.Semaphore;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
-import sp.sponge.scene.objects.custom.obj.Bunny;
-import sp.sponge.scene.objects.custom.obj.Cube;
-import sp.sponge.scene.objects.custom.obj.Dragon;
-import sp.sponge.scene.objects.custom.obj.Sponza;
+import sp.sponge.scene.objects.custom.obj.*;
 
 import java.nio.ByteBuffer;
 import java.nio.LongBuffer;
@@ -179,7 +176,7 @@ public class MainRenderer {
         SceneManager.addObject(new Sponza(false));
 
         Cube lightCube = new Cube(false);
-        lightCube.getTransformations().setPosition(0, 20, -4);
+        lightCube.getTransformations().setPosition(0, 20, -3);
         lightCube.getMaterial().setColor(0, 0, 0);
         lightCube.getMaterial().setEmissiveColor(1, 0, 0);
         lightCube.getTransformations().scale(5);
@@ -187,7 +184,7 @@ public class MainRenderer {
         SceneManager.addObject(lightCube);
 
         Cube lightCube2 = new Cube(false);
-        lightCube2.getTransformations().setPosition(20, 20, -4);
+        lightCube2.getTransformations().setPosition(20, 20, -3);
         lightCube2.getMaterial().setColor(0, 0, 0);
         lightCube2.getMaterial().setEmissiveColor(0, 1, 0);
         lightCube2.getTransformations().scale(5);
@@ -195,12 +192,50 @@ public class MainRenderer {
         SceneManager.addObject(lightCube2);
 
         Cube lightCube3 = new Cube(false);
-        lightCube3.getTransformations().setPosition(-20, 20, -4);
+        lightCube3.getTransformations().setPosition(-20, 20, -3);
         lightCube3.getMaterial().setColor(0, 0, 0);
         lightCube3.getMaterial().setEmissiveColor(0, 0, 1);
         lightCube3.getTransformations().scale(5);
         lightCube3.getMaterial().setEmissiveStrength(10);
         SceneManager.addObject(lightCube3);
+
+//        Square floor = new Square(false);
+//        floor.getTransformations().setPosition(0, -0.5f, 0);
+//        floor.getTransformations().rotate(90, 0, 0);
+//        floor.getMaterial().setColor(1, 1, 1);
+//        SceneManager.addObject(floor);
+//
+//        Square backWall = new Square(false);
+//        backWall.getTransformations().setPosition(0, 0, -0.5f);
+//        backWall.getTransformations().rotate(0, 0, 0);
+//        backWall.getMaterial().setColor(1, 1, 1);
+//        SceneManager.addObject(backWall);
+//
+//        Square redWall = new Square(false);
+//        redWall.getTransformations().setPosition(-0.5f, 0, 0);
+//        redWall.getTransformations().rotate(0, 90, 0);
+//        redWall.getMaterial().setColor(1, 0, 0);
+//        SceneManager.addObject(redWall);
+//
+//        Square greenWall = new Square(false);
+//        greenWall.getTransformations().setPosition(0.5f, 0, 0);
+//        greenWall.getTransformations().rotate(0, -90, 0);
+//        greenWall.getMaterial().setColor(0, 1, 0);
+//        SceneManager.addObject(greenWall);
+//
+//        Square ceiling = new Square(false);
+//        ceiling.getTransformations().setPosition(0, 0.5f, 0);
+//        ceiling.getTransformations().rotate(90, 0, 0);
+//        ceiling.getMaterial().setColor(1, 1, 1);
+//        ceiling.getMaterial().setEmissiveColor(1, 1, 1);
+//        ceiling.getMaterial().setEmissiveStrength(5);
+//        SceneManager.addObject(ceiling);
+//
+//        Sphere sphere = new Sphere(false);
+//        sphere.getTransformations().setPosition(0, -0.3f, 0);
+//        sphere.getTransformations().scale(0.2f);
+//        sphere.getMaterial().setColor(1, 1, 1);
+//        SceneManager.addObject(sphere);
 
         this.updateObjects(this.vulkanCtx, this.commandPool, this.graphicsQueue);
 
@@ -252,7 +287,7 @@ public class MainRenderer {
 
         for (int i = 0; i < numOfImages; i++) {
             int index = (i - 1) % numOfImages;
-            index = index == -1 ? 2 : index;
+            index = index == -1 ? (numOfImages - 1) : index;
             DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(this.vulkanCtx, PREV_DESC_SET[index], layout);
             group.descriptorSet().setImage(this.vulkanCtx, this.vulkanCtx.getSwapChain().getImageViews()[index], null, layout.getLayoutInfo().descriptorType(), layout.getLayoutInfo().binding());
         }
@@ -371,7 +406,10 @@ public class MainRenderer {
         this.needsToResize = this.vulkanCtx.getSwapChain().presentImage(this.presentQueue, this.renderSemaphores, imageIndex);
 
         frame++;
-        currentFrame = (frame) % (VulkanUtils.MAX_FRAMES_IN_FLIGHT + 1);
+        if (this.camera.hasMoved()) {
+            frame = 0;
+        }
+        currentFrame = (currentFrame + 1) % (VulkanUtils.MAX_FRAMES_IN_FLIGHT + 1);
     }
 
     public void renderScene(VkCommandBuffer buffer, int imageIndex) {
@@ -492,7 +530,7 @@ public class MainRenderer {
         uniformBlock.putLong(this.vertexMeshBuffers.getVertexBuffers().getGpuAddress(this.vulkanCtx));
         uniformBlock.putLong(this.vertexMeshBuffers.getMeshBuffers().getGpuAddress(this.vulkanCtx));
 
-        uniformBlock.putFloat((float) frame / 10000);
+        uniformBlock.putFloat((float) frame);
         //284
 
         vkBuffer.unmap(this.vulkanCtx);

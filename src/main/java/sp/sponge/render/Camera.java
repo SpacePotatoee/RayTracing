@@ -21,8 +21,8 @@ public class Camera {
 
     public Camera() {
         this.fov = 70;
-        this.position = new Vec3f(0,0, 0);
-        this.rotationVector = new Vec3f(0, 0, 1);
+        this.position = new Vec3f(-50,5, -3);
+        this.rotationVector = new Vec3f(0, (float) Math.toRadians(90), 1);
     }
 
     public float getFov() {

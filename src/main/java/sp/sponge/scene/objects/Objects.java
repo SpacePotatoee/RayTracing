@@ -5,6 +5,7 @@ import sp.sponge.scene.objects.custom.*;
 import sp.sponge.scene.objects.custom.obj.Bunny;
 import sp.sponge.scene.objects.custom.obj.Cube;
 import sp.sponge.scene.objects.custom.obj.Dragon;
+import sp.sponge.scene.objects.custom.obj.Sphere;
 import sp.sponge.scene.registries.Registries;
 import sp.sponge.scene.registries.custom.object.ObjectType;
 
@@ -18,12 +19,12 @@ public class Objects {
             new ObjectType<>(Circle.class, "circle", Circle::new)
     );
 
-    public static final ObjectType<SceneObject> SPHERE = Registries.SceneObjectRegistry.register(
-            new ObjectType<>(Sphere.class, "sphere", Sphere::new)
-    );
-
     public static final ObjectType<SceneObject> CUBE = Registries.SceneObjectRegistry.register(
             new ObjectType<>(Cube.class, "cube", Cube::new)
+    );
+
+    public static final ObjectType<SceneObject> SPHERE = Registries.SceneObjectRegistry.register(
+            new ObjectType<>(Sphere.class, "sphere", Sphere::new)
     );
 
     public static final ObjectType<SceneObject> BUNNY = Registries.SceneObjectRegistry.register(

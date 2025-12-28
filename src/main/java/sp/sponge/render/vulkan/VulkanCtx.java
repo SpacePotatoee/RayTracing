@@ -27,7 +27,7 @@ public class VulkanCtx {
 
         Window window = Window.getWindow();
         this.surface = new Surface(this.vulkanInstance, this.physicalDevice, window);
-        this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 3, true);
+        this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 2, false);
         this.pipelineCache = new PipelineCache(this.logicalDevice);
         this.descriptorAllocator = new DescriptorAllocator(this.physicalDevice, this.logicalDevice);
 
@@ -71,7 +71,7 @@ public class VulkanCtx {
 
         Window window = Window.getWindow();
         this.surface = new Surface(this.vulkanInstance, this.physicalDevice, window);
-        this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 3, true);
+        this.swapChain = new SwapChain(window, this.logicalDevice, this.surface, 3, false);
     }
 
     public void free() {
