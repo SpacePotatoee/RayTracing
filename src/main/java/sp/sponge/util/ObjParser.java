@@ -103,18 +103,18 @@ public class ObjParser {
                         if (numOfVertices == 4) {
                             faces.add(new Mesh.Face(faceVertices[0], faceVertices[2], faceVertices[3]));
                         }
-                        totalFaces++;
                     }
                 }
             }
 
-            Mesh mesh = new Mesh(faces.size());
+            int numOfFaces = faces.size();
+            Mesh mesh = new Mesh(numOfFaces);
 
             for (Mesh.Face face : faces) {
                 mesh.addFace(face);
             }
             cachedMeshes.put(pathToObjFile, mesh);
-            Sponge.getInstance().getLogger().info("Generated " + totalFaces + " triangles");
+            Sponge.getInstance().getLogger().info("Generated " + numOfFaces + " triangles");
             return mesh;
 
         } catch (IOException e) {

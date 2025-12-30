@@ -1,5 +1,8 @@
 package sp.sponge.render;
 
+import org.lwjgl.opengl.EXTSemaphore;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL30;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.util.shaderc.Shaderc;
 import org.lwjgl.vulkan.*;
@@ -27,7 +30,6 @@ import sp.sponge.render.vulkan.raytracing.shader.ShaderBindingTable;
 import sp.sponge.render.vulkan.raytracing.shader.ShaderGroup;
 import sp.sponge.render.vulkan.image.ImageView;
 import sp.sponge.render.vulkan.sync.Fence;
-import sp.sponge.render.vulkan.sync.Semaphore;
 import sp.sponge.scene.SceneManager;
 import sp.sponge.scene.objects.SceneObject;
 import sp.sponge.scene.objects.custom.obj.*;
@@ -54,28 +56,16 @@ public class MainRenderer {
     private static final String TLAS_DESC_SET = "tlas_desc_set";
     private static final String SAMPLER_DESC_SET = "samp_desc_set";
 
-    private static final String[] IMG_DESC_SET = new String[] {
-            "img_desc_set1",
-            "img_desc_set2",
-            "img_desc_set3"
-    };
-
-    private static final String[] PREV_DESC_SET = new String[] {
-            "sampler_desc_set1",
-            "sampler_desc_set2",
-            "sampler_desc_set3"
-    };
+    private static final String IMG_STORAGE_DESC_SET = "img_desc_set";
+    private static final String PREV_SAMPLER_DESC_SET = "prev_sampler_desc_set";
 
     private final Camera camera;
     private final VulkanCtx vulkanCtx;
     private final Queue.GraphicsQueue graphicsQueue;
-    private final Queue.PresentQueue presentQueue;
     private final CommandPool commandPool;
     private final List<CommandBuffer> commandBuffers = new ArrayList<>();
 
     private final Fence fences;
-    private Semaphore renderSemaphores;
-    private Semaphore presentSemaphores;
 
     private VkBuffer vertexUniformBuffer;
     private final DescriptorSets descriptorSets;
@@ -86,6 +76,8 @@ public class MainRenderer {
     private BLAS blas;
     private TLAS tlas;
 
+    private final Interop interop;
+
     private boolean needsToResize;
 
     private static int frame;
@@ -95,19 +87,17 @@ public class MainRenderer {
         this.camera = new Camera();
         this.vulkanCtx = new VulkanCtx();
         this.graphicsQueue = new Queue.GraphicsQueue(this.vulkanCtx, 1);
-        this.presentQueue = new Queue.PresentQueue(this.vulkanCtx, 1);
         this.commandPool = new CommandPool(this.vulkanCtx, this.graphicsQueue.getQueueFamilyIndex(), true);
 
-        int numOfImages = this.vulkanCtx.getSwapChain().getNumOfImages();
+        int numOfImages = 2;
         this.createCommandBuffers(numOfImages);
 
         this.fences = new Fence(this.vulkanCtx, true);
-        this.renderSemaphores = new Semaphore(this.vulkanCtx);
-        this.presentSemaphores = new Semaphore(this.vulkanCtx);
 
         this.vertexMeshBuffers = new MeshBuffers(this.vulkanCtx, 1000, 0, 50000000, VK10.VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | KHRAccelerationStructure.VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR);
 
         this.descriptorSets = new DescriptorSets();
+        this.interop = new Interop(this.vulkanCtx);
     }
 
     public void init() {
@@ -156,13 +146,15 @@ public class MainRenderer {
                 0
         );
 
-        int numOfImages = this.vulkanCtx.getSwapChain().getNumOfImages();
-        DescriptorSetLayout imageLayout = this.createImageDescSet(numOfImages);
-        DescriptorSetLayout prevImageLayout = this.createPrevImageDescSet(numOfImages);
+        DescriptorSetLayout imageLayout = this.createImageDescSet(
+                this.interop.getVkFramebuffer().getImageView(), IMG_STORAGE_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+        DescriptorSetLayout prevImageLayout = this.createImageDescSet(
+                this.interop.getPrevVkFramebuffer().getImageView(), PREV_SAMPLER_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 
         ShaderModule[] shaderModules = createRTShaderModules();
         VkRayTracingShaderGroupCreateInfoKHR.Buffer groups = createShaderGroups();
-        this.pipeline = this.createRTPipeline(shaderModules, groups, new DescriptorSetLayout[]{defUniformDescLayout, this.descriptorSets.getLayout(TLAS_DESC_SET), imageLayout, prevImageLayout, samplerSet.layout()});
+        this.pipeline = this.createRTPipeline(
+                shaderModules, groups, new DescriptorSetLayout[]{defUniformDescLayout, this.descriptorSets.getLayout(TLAS_DESC_SET), imageLayout, prevImageLayout, samplerSet.layout()});
         this.shaderBindingTable = createShaderBindingTable(groups.remaining());
 
         Arrays.asList(shaderModules).forEach(shaderModule -> shaderModule.free(this.vulkanCtx));
@@ -180,7 +172,7 @@ public class MainRenderer {
         lightCube.getMaterial().setColor(0, 0, 0);
         lightCube.getMaterial().setEmissiveColor(1, 0, 0);
         lightCube.getTransformations().scale(5);
-        lightCube.getMaterial().setEmissiveStrength(10);
+        lightCube.getMaterial().setEmissiveStrength(100);
         SceneManager.addObject(lightCube);
 
         Cube lightCube2 = new Cube(false);
@@ -188,7 +180,7 @@ public class MainRenderer {
         lightCube2.getMaterial().setColor(0, 0, 0);
         lightCube2.getMaterial().setEmissiveColor(0, 1, 0);
         lightCube2.getTransformations().scale(5);
-        lightCube2.getMaterial().setEmissiveStrength(10);
+        lightCube2.getMaterial().setEmissiveStrength(100);
         SceneManager.addObject(lightCube2);
 
         Cube lightCube3 = new Cube(false);
@@ -196,7 +188,7 @@ public class MainRenderer {
         lightCube3.getMaterial().setColor(0, 0, 0);
         lightCube3.getMaterial().setEmissiveColor(0, 0, 1);
         lightCube3.getTransformations().scale(5);
-        lightCube3.getMaterial().setEmissiveStrength(10);
+        lightCube3.getMaterial().setEmissiveStrength(100);
         SceneManager.addObject(lightCube3);
 
 //        Square floor = new Square(false);
@@ -255,42 +247,19 @@ public class MainRenderer {
         group.descriptorSet().setTLAS(this.vulkanCtx, layoutInfo.binding(), layoutInfo.descriptorType(), this.tlas);
     }
 
-    private DescriptorSetLayout createImageDescSet(int numOfImages) {
+    private DescriptorSetLayout createImageDescSet(ImageView imageView, String name, int descriptorType) {
         DescriptorSetLayout layout = new DescriptorSetLayout(
                 this.vulkanCtx,
                 new DescriptorSetLayout.LayoutInfo(
-                        VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+                        descriptorType,
                         0,
                         1,
                         VK_SHADER_STAGE_RAYGEN_BIT_KHR
                 )
         );
 
-        for (int i = 0; i < numOfImages; i++) {
-            DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(this.vulkanCtx, IMG_DESC_SET[i], layout);
-            group.descriptorSet().setImage(this.vulkanCtx, this.vulkanCtx.getSwapChain().getImageViews()[i], null, layout.getLayoutInfo().descriptorType(), layout.getLayoutInfo().binding());
-        }
-
-        return layout;
-    }
-
-    private DescriptorSetLayout createPrevImageDescSet(int numOfImages) {
-        DescriptorSetLayout layout = new DescriptorSetLayout(
-                this.vulkanCtx,
-                new DescriptorSetLayout.LayoutInfo(
-                        VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                        0,
-                        1,
-                        VK_SHADER_STAGE_RAYGEN_BIT_KHR
-                )
-        );
-
-        for (int i = 0; i < numOfImages; i++) {
-            int index = (i - 1) % numOfImages;
-            index = index == -1 ? (numOfImages - 1) : index;
-            DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(this.vulkanCtx, PREV_DESC_SET[index], layout);
-            group.descriptorSet().setImage(this.vulkanCtx, this.vulkanCtx.getSwapChain().getImageViews()[index], null, layout.getLayoutInfo().descriptorType(), layout.getLayoutInfo().binding());
-        }
+        DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(this.vulkanCtx, name, layout);
+        group.descriptorSet().setImage(this.vulkanCtx, imageView, null, descriptorType, layout.getLayoutInfo().binding());
 
         return layout;
     }
@@ -385,6 +354,12 @@ public class MainRenderer {
     }
 
     public void render() {
+        GL11.glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
+        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+        Window window = Window.getWindow();
+        int width = window.getWidth();
+        int height = window.getHeight();
+
         if (this.needsToResize) {
             this.resize();
         }
@@ -396,14 +371,18 @@ public class MainRenderer {
 
         buffer.reset();
         buffer.beginRecordingPrimary();
-
-        int imageIndex = this.vulkanCtx.getSwapChain().getNextImage(this.vulkanCtx.getLogicalDevice(), this.presentSemaphores);
-        this.renderScene(buffer.getVkCommandBuffer(), imageIndex);
-
+        this.renderScene(buffer.getVkCommandBuffer());
         buffer.endRecording();
-
         this.submit(buffer);
-        this.needsToResize = this.vulkanCtx.getSwapChain().presentImage(this.presentQueue, this.renderSemaphores, imageIndex);
+
+        EXTSemaphore.glWaitSemaphoreEXT(this.interop.getCompleteSemaphorePair().glSemaphore(), new int[]{0}, new int[] {this.interop.getGlFramebuffer().getColorAttachment()}, new int[]{EXTSemaphore.GL_LAYOUT_COLOR_ATTACHMENT_EXT});
+
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, this.interop.getGlFramebuffer().getFramebuffer());
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
+        GL30.glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL11.GL_COLOR_BUFFER_BIT, GL11.GL_NEAREST);
+        GL30.glBindFramebuffer(GL30.GL_READ_FRAMEBUFFER, 0);
+        GL30.glBindFramebuffer(GL30.GL_DRAW_FRAMEBUFFER, 0);
+
 
         frame++;
         if (this.camera.hasMoved()) {
@@ -412,11 +391,10 @@ public class MainRenderer {
         currentFrame = (currentFrame + 1) % (VulkanUtils.MAX_FRAMES_IN_FLIGHT + 1);
     }
 
-    public void renderScene(VkCommandBuffer buffer, int imageIndex) {
+    public void renderScene(VkCommandBuffer buffer) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            ImageView imageView = this.vulkanCtx.getSwapChain().getImageViews()[imageIndex];
-            long swapChainImage = imageView.getImageHandle();
-            VkExtent2D extent2D = this.vulkanCtx.getSwapChain().getExtent2D();
+            Window window = Window.getWindow();
+            long swapChainImage = this.interop.getVkFramebuffer().getImageView().getImageHandle();
 
             VulkanUtils.imageBarrier(stack, buffer, swapChainImage,
                     VK10.VK_IMAGE_LAYOUT_UNDEFINED,
@@ -434,8 +412,8 @@ public class MainRenderer {
             LongBuffer descriptorSets = stack.mallocLong(5)
                     .put(0, allocator.getDescriptorSet(VERTEX_DESC_SET).getVkDescriptorSet())
                     .put(1, allocator.getDescriptorSet(TLAS_DESC_SET).getVkDescriptorSet())
-                    .put(2, allocator.getDescriptorSet(IMG_DESC_SET[imageIndex]).getVkDescriptorSet())
-                    .put(3, allocator.getDescriptorSet(PREV_DESC_SET[imageIndex]).getVkDescriptorSet())
+                    .put(2, allocator.getDescriptorSet(IMG_STORAGE_DESC_SET).getVkDescriptorSet())
+                    .put(3, allocator.getDescriptorSet(PREV_SAMPLER_DESC_SET).getVkDescriptorSet())
                     .put(4, allocator.getDescriptorSet(SAMPLER_DESC_SET).getVkDescriptorSet());
             VK10.vkCmdBindDescriptorSets(
                     buffer,
@@ -452,8 +430,8 @@ public class MainRenderer {
                     shaderBindingTable.miss().getDeviceAddressRegion(),
                     shaderBindingTable.hit().getDeviceAddressRegion(),
                     VkStridedDeviceAddressRegionKHR.calloc(stack),
-                    extent2D.width(),
-                    extent2D.height(),
+                    window.getWidth(),
+                    window.getHeight(),
                     1
             );
 
@@ -499,14 +477,14 @@ public class MainRenderer {
             VkSemaphoreSubmitInfo.Buffer waitSemaphores = VkSemaphoreSubmitInfo.calloc(1, stack)
                     .sType$Default()
                     .stageMask(VK13.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT)
-                    .semaphore(this.presentSemaphores.getVkSemaphore());
+                    .semaphore(this.interop.getReadySemaphorePair().vkSemaphore().getVkSemaphore());
 
             VkSemaphoreSubmitInfo.Buffer signalSemaphores = VkSemaphoreSubmitInfo.calloc(1, stack)
                     .sType$Default()
                     .stageMask(VK13.VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT)
-                    .semaphore(this.renderSemaphores.getVkSemaphore());
+                    .semaphore(this.interop.getCompleteSemaphorePair().vkSemaphore().getVkSemaphore());
 
-            graphicsQueue.submit(cmdSubmitBuffer, waitSemaphores, signalSemaphores, this.fences);
+            graphicsQueue.submit(cmdSubmitBuffer, null, signalSemaphores, this.fences);
         }
     }
 
@@ -542,11 +520,7 @@ public class MainRenderer {
 
         this.vulkanCtx.resize();
 
-        this.renderSemaphores.free(this.vulkanCtx);
-        this.presentSemaphores.free(this.vulkanCtx);
-
-        this.renderSemaphores = new Semaphore(this.vulkanCtx);
-        this.presentSemaphores = new Semaphore(this.vulkanCtx);
+        this.interop.resize(this.vulkanCtx);
     }
 
     public VulkanCtx getVulkanCtx() {
@@ -558,14 +532,10 @@ public class MainRenderer {
         this.descriptorSets.free(this.vulkanCtx);
 
         this.vertexUniformBuffer.free(this.vulkanCtx);
-        this.shaderBindingTable.free(this.vulkanCtx);
         this.tlas.free(this.vulkanCtx);
         this.blas.free(this.vulkanCtx);
 
-        this.pipeline.free(this.vulkanCtx);
         this.vertexMeshBuffers.free();
-        this.presentSemaphores.free(this.vulkanCtx);
-        this.renderSemaphores.free(this.vulkanCtx);
         this.fences.close(this.vulkanCtx);
         this.commandPool.close();
         this.vulkanCtx.free();

@@ -84,40 +84,4 @@ public abstract class Queue {
             return index;
         }
     }
-
-    public static class PresentQueue extends Queue {
-        public PresentQueue(VulkanCtx ctx, int queueIndex) {
-            super(ctx, queueIndex);
-        }
-
-        @Override
-        public int initQueueFamilyIndex(VulkanCtx ctx) {
-            int index = -1;
-            try (MemoryStack stack = MemoryStack.stackPush()) {
-                VkQueueFamilyProperties.Buffer propertiesBuffer = ctx.getPhysicalDevice().getDeviceQueFamilyProperties();
-                int numOfQueueFamilies = propertiesBuffer.capacity();
-                IntBuffer intBuffer = stack.callocInt(1);
-                for (int i = 0; i < numOfQueueFamilies; i++) {
-
-                    KHRSurface.vkGetPhysicalDeviceSurfaceSupportKHR(
-                            ctx.getPhysicalDevice().getVkPhysicalDevice(),
-                            i,
-                            ctx.getSurface().getSurfaceHandle(),
-                            intBuffer
-                    );
-
-                    if (intBuffer.get() == VK10.VK_TRUE) {
-                        index = i;
-                        break;
-                    }
-                }
-            }
-
-            if (index < 0) {
-                throw new RuntimeException("Failed to get present Queue Family index");
-            }
-
-            return index;
-        }
-    }
 }

@@ -1,6 +1,9 @@
 package sp.sponge.render;
 
 import org.lwjgl.glfw.GLFWVulkan;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL45;
 import sp.sponge.input.Input;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -25,12 +28,9 @@ public class Window implements AutoCloseable {
             throw new RuntimeException("Failed to initialize GLFW");
         }
 
-        if (!GLFWVulkan.glfwVulkanSupported()) {
-            throw new RuntimeException("Vulkan is not supported on your hardware");
-        }
-
         glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
         this.width = 1920;
@@ -41,12 +41,18 @@ public class Window implements AutoCloseable {
             throw new RuntimeException("Failed to create window");
         }
 
+        glfwMakeContextCurrent(this.handle);
+        glfwSwapInterval(1);
+        glfwShowWindow(this.handle);
         glfwSetWindowSizeCallback(this.handle, this::resize);
 
         this.input = new Input(this);
+
+        GL.createCapabilities();
     }
 
     public void resize(long handle, int width, int height) {
+        GL11.glViewport(0, 0, width, height);
         this.width = width;
         this.height = height;
     }
@@ -56,6 +62,7 @@ public class Window implements AutoCloseable {
     }
 
     public void pollEvents() {
+        glfwSwapBuffers(this.handle);
         glfwPollEvents();
     }
 

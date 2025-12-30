@@ -38,7 +38,11 @@ public class PhysicalDevice implements AutoCloseable {
             KHRSwapchain.VK_KHR_SWAPCHAIN_EXTENSION_NAME,
             KHRAccelerationStructure.VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
             KHRRayTracingPipeline.VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
-            KHRDeferredHostOperations.VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME
+            KHRDeferredHostOperations.VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
+
+            //Interop
+            KHRExternalMemory.VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME,
+            KHRExternalSemaphore.VK_KHR_EXTERNAL_SEMAPHORE_EXTENSION_NAME
     );
 
     private static final List<Integer> REQUIRED_QUEUE_FAMILIES = List.of(

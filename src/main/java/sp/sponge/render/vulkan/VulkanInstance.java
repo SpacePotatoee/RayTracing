@@ -23,7 +23,11 @@ public class VulkanInstance implements AutoCloseable {
     );
     private final List<String> desiredExtensions = List.of(
             EXTDebugUtils.VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-            KHRGetSurfaceCapabilities2.VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME
+            KHRGetSurfaceCapabilities2.VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME,
+
+            //Interop
+            KHRExternalMemoryCapabilities.VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
+            KHRExternalSemaphoreCapabilities.VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME
     );
 
     private boolean mac;

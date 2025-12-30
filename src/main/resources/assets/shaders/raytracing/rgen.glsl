@@ -127,7 +127,7 @@ void main() {
     vec3 light = vec3(0.0);
     const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5f, 0.5f);
     const vec2 invUv = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
-    texCoord = vec2(invUv.x, 1.0 - invUv.y);
+    texCoord = vec2(invUv.x, invUv.y);
 
     ray.rayDir = getRayDir();
     ray.rayOrigin = cameraInfo.cameraPos.xyz;
