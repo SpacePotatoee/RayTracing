@@ -22,8 +22,8 @@ layout(set = 0, binding = 0) uniform CameraInfo {
     mat4 modelViewMat;
     mat4 invProjMat;
     mat4 invModelViewMat;
-
     vec3 cameraPos;
+
     uint64_t vertAddress;
     uint64_t meshAddress;
 
@@ -33,9 +33,9 @@ layout(set = 0, binding = 0) uniform CameraInfo {
 const vec3 UP_DIR = vec3(0.0, 1.0, 0.0);
 const float PI = 3.141592;
 
-//float TIME = mod(cameraInfo.time * 5, 1.0);
-float TIME = 0.0;
-float angle = (TIME * 360 - 90) * (PI / 180);
+float TIME = mod(cameraInfo.time * 0.001, 1.0);
+//float TIME = 0.0;
+float angle = (TIME * 360 - 90) * (PI * 0.005555555555556);
 vec3 SUN_DIR = normalize(vec3(-cos(angle), -sin(angle), 0.1));
 vec3 MOON_DIR = vec3(-SUN_DIR.x, -SUN_DIR.y, SUN_DIR.z);
 

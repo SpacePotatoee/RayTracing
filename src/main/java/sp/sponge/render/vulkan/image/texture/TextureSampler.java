@@ -15,8 +15,8 @@ public class TextureSampler {
         try (MemoryStack stack = MemoryStack.stackPush()) {
             VkSamplerCreateInfo createInfo = VkSamplerCreateInfo.calloc(stack)
                     .sType$Default()
-                    .magFilter(VK10.VK_FILTER_LINEAR)
-                    .minFilter(VK10.VK_FILTER_LINEAR)
+                    .magFilter(builder.filter)
+                    .minFilter(builder.filter)
                     .addressModeU(builder.wrap)
                     .addressModeV(builder.wrap)
                     .addressModeW(builder.wrap)

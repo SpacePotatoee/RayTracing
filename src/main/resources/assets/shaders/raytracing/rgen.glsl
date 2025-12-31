@@ -35,8 +35,8 @@ layout(set = 0, binding = 0) uniform CameraInfo {
 const vec3 UP_DIR = vec3(0.0, 1.0, 0.0);
 const float PI = 3.141592;
 
-//float TIME = mod(cameraInfo.time * 5, 1.0);
-float TIME = 0.0;
+float TIME = mod(cameraInfo.time * 0.001, 1.0);
+//float TIME = 0.0;
 float angle = (TIME * 360 - 90) * (PI * 0.005555555555556);
 vec3 SUN_DIR = normalize(vec3(-cos(angle), -sin(angle), 0.1));
 vec3 MOON_DIR = vec3(-SUN_DIR.x, -SUN_DIR.y, SUN_DIR.z);
@@ -145,17 +145,17 @@ void main() {
         vec3 shadowDir = moon ? MOON_DIR : SUN_DIR;
 
         //Shadow rays
-//        ray.hit = true;
-//        ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
-//        ray.rayDir = mix(shadowDir, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
-//        if (dot(ray.hitNormal, shadowDir) >= -0.001) {
-//            traceRayEXT(accelStruct, gl_RayFlagsTerminateOnFirstHitEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
-//        }
-//
-//
-//        if (!ray.hit) {
-//            light += throughPut * mix(vec3(moon ? 0.1 : 1.0), getSkyColor(ray.rayDir), 0.1);
-//        }
+        ray.hit = true;
+        ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
+        ray.rayDir = mix(shadowDir, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
+        if (dot(ray.hitNormal, shadowDir) >= -0.001) {
+            traceRayEXT(accelStruct, gl_RayFlagsTerminateOnFirstHitEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
+        }
+
+
+        if (!ray.hit) {
+            light += throughPut * mix(vec3(moon ? 0.1 : 1.0), getSkyColor(ray.rayDir), 0.1);
+        }
 
         ray.hit = prevHit;
         ray.rayPos = prevPos;
@@ -175,13 +175,13 @@ void main() {
                 light += ray.hitMaterial.emissiveColor.rgb * ray.hitMaterial.emissiveColor.a * throughPut;
                 throughPut *= ray.hitMaterial.color.rgb;
 
-//                if (ray.hitMaterial.emissiveColor.a > 0) {
-//                    break;
-//                }
+                if (ray.hitMaterial.emissiveColor.a > 0) {
+                    break;
+                }
             }
         }
 
-        light = mix(light, texture(prevImage, vec2(texCoord.x, -texCoord.y)).rgb, 0.97);
+        light = mix(light, texture(prevImage, vec2(texCoord.x, texCoord.y)).rgb, 0.98);
 
     } else {
         if (ray.hitMaterial.emissiveColor.a > 0) {

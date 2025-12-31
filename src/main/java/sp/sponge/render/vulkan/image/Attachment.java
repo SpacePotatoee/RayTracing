@@ -13,7 +13,7 @@ public class Attachment {
                 .width(width)
                 .height(height)
                 .format(format)
-                .usage(usage | VK10.VK_IMAGE_USAGE_SAMPLED_BIT)
+                .usage(usage)
                 .build(ctx);
 
         int aspectMask = 0;
@@ -27,7 +27,7 @@ public class Attachment {
         }
 
         this.imageView = new ImageView.ImageViewBuilder()
-                .setFormat(this.image.getFormat())
+                .setFormat(format)
                 .setAspectMask(aspectMask)
                 .build(ctx.getLogicalDevice(), this.image.getVkImage());
     }

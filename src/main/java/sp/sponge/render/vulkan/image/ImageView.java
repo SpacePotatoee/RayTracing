@@ -13,6 +13,7 @@ public class ImageView {
     private final LogicalDevice logicalDevice;
     private final int aspectMask;
     private final int mipLevels;
+    private final int baseArrayLayer;
     private final long imageHandle;
     private final long usage;
     private final long vkImageViewHandle;
@@ -24,6 +25,7 @@ public class ImageView {
         this.mipLevels = builder.mipLevels;
         this.imageHandle = imageHandle;
         this.usage = builder.usage;
+        this.baseArrayLayer = builder.baseArrayLayer;
 
         try (MemoryStack stack = MemoryStack.stackPush()) {
 
@@ -63,6 +65,10 @@ public class ImageView {
 
     public long getUsage() {
         return usage;
+    }
+
+    public int getBaseArrayLayer() {
+        return baseArrayLayer;
     }
 
     public long getVkImageViewHandle() {

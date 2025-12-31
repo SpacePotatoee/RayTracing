@@ -1,5 +1,6 @@
 package sp.sponge.render;
 
+import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.EXTSemaphore;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL30;
@@ -19,6 +20,8 @@ import sp.sponge.render.vulkan.device.command.CommandBuffer;
 import sp.sponge.render.vulkan.device.command.CommandPool;
 import sp.sponge.render.vulkan.device.Queue;
 import sp.sponge.render.vulkan.buffer.VkBuffer;
+import sp.sponge.render.vulkan.image.Attachment;
+import sp.sponge.render.vulkan.image.Image;
 import sp.sponge.render.vulkan.image.texture.TextureManager;
 import sp.sponge.render.vulkan.image.texture.TextureSampler;
 import sp.sponge.render.vulkan.pipeline.shaders.ShaderCompiler;
@@ -147,9 +150,9 @@ public class MainRenderer {
         );
 
         DescriptorSetLayout imageLayout = this.createImageDescSet(
-                this.interop.getVkFramebuffer().getImageView(), IMG_STORAGE_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+                this.interop.getVkFramebuffer().getImageView(), IMG_STORAGE_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, null);
         DescriptorSetLayout prevImageLayout = this.createImageDescSet(
-                this.interop.getPrevVkFramebuffer().getImageView(), PREV_SAMPLER_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+                this.interop.getPrevVkFramebuffer().getImageView(), PREV_SAMPLER_DESC_SET, VK10.VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, sampler);
 
         ShaderModule[] shaderModules = createRTShaderModules();
         VkRayTracingShaderGroupCreateInfoKHR.Buffer groups = createShaderGroups();
@@ -172,7 +175,7 @@ public class MainRenderer {
         lightCube.getMaterial().setColor(0, 0, 0);
         lightCube.getMaterial().setEmissiveColor(1, 0, 0);
         lightCube.getTransformations().scale(5);
-        lightCube.getMaterial().setEmissiveStrength(100);
+        lightCube.getMaterial().setEmissiveStrength(10);
         SceneManager.addObject(lightCube);
 
         Cube lightCube2 = new Cube(false);
@@ -180,7 +183,7 @@ public class MainRenderer {
         lightCube2.getMaterial().setColor(0, 0, 0);
         lightCube2.getMaterial().setEmissiveColor(0, 1, 0);
         lightCube2.getTransformations().scale(5);
-        lightCube2.getMaterial().setEmissiveStrength(100);
+        lightCube2.getMaterial().setEmissiveStrength(10);
         SceneManager.addObject(lightCube2);
 
         Cube lightCube3 = new Cube(false);
@@ -188,7 +191,7 @@ public class MainRenderer {
         lightCube3.getMaterial().setColor(0, 0, 0);
         lightCube3.getMaterial().setEmissiveColor(0, 0, 1);
         lightCube3.getTransformations().scale(5);
-        lightCube3.getMaterial().setEmissiveStrength(100);
+        lightCube3.getMaterial().setEmissiveStrength(10);
         SceneManager.addObject(lightCube3);
 
 //        Square floor = new Square(false);
@@ -247,7 +250,7 @@ public class MainRenderer {
         group.descriptorSet().setTLAS(this.vulkanCtx, layoutInfo.binding(), layoutInfo.descriptorType(), this.tlas);
     }
 
-    private DescriptorSetLayout createImageDescSet(ImageView imageView, String name, int descriptorType) {
+    private DescriptorSetLayout createImageDescSet(ImageView imageView, String name, int descriptorType, @Nullable TextureSampler sampler) {
         DescriptorSetLayout layout = new DescriptorSetLayout(
                 this.vulkanCtx,
                 new DescriptorSetLayout.LayoutInfo(
@@ -259,7 +262,7 @@ public class MainRenderer {
         );
 
         DescriptorSets.Group group = this.descriptorSets.addDescriptorGroup(this.vulkanCtx, name, layout);
-        group.descriptorSet().setImage(this.vulkanCtx, imageView, null, descriptorType, layout.getLayoutInfo().binding());
+        group.descriptorSet().setImage(this.vulkanCtx, imageView, sampler, descriptorType, layout.getLayoutInfo().binding());
 
         return layout;
     }
@@ -444,7 +447,34 @@ public class MainRenderer {
                     VK13.VK_PIPELINE_STAGE_2_NONE,
                     VK10.VK_IMAGE_ASPECT_COLOR_BIT
             );
+
+
+            this.copyToPrevBuffer(buffer, stack, this.interop.getVkFramebuffer(), this.interop.getPrevVkFramebuffer());
         }
+    }
+
+    public void copyToPrevBuffer(VkCommandBuffer commandBuffer, MemoryStack stack, Attachment srcAttachment, Attachment dstAttachment) {
+        Image srcImage = srcAttachment.getImage();
+        Image dstImage = dstAttachment.getImage();
+        ImageView srcImageView = srcAttachment.getImageView();
+        ImageView dstImageView = dstAttachment.getImageView();
+
+        VkImageCopy.Buffer imageCopies = VkImageCopy.calloc(1, stack)
+                .srcOffset(vkOffset3D -> vkOffset3D.set(0, 0, 0))
+                .dstOffset(vkOffset3D -> vkOffset3D.set(0, 0, 0))
+                .extent(vkExtent3D -> vkExtent3D.set(dstImage.getWidth(), dstImage.getHeight(), 1))
+                .srcSubresource(vkImageSubresourceLayers ->
+                        vkImageSubresourceLayers
+                                .layerCount(srcImageView.getMipLevels())
+                                .aspectMask(srcImageView.getAspectMask())
+                                .baseArrayLayer(srcImageView.getBaseArrayLayer()))
+                .dstSubresource(vkImageSubresourceLayers ->
+                        vkImageSubresourceLayers
+                                .layerCount(dstImageView.getMipLevels())
+                                .aspectMask(dstImageView.getAspectMask())
+                                .baseArrayLayer(dstImageView.getBaseArrayLayer()));
+
+        VK11.vkCmdCopyImage(commandBuffer, srcImage.getVkImage(), VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, dstImage.getVkImage(), VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, imageCopies);
     }
 
     public void updateObjects(VulkanCtx ctx, CommandPool commandPool, Queue queue) {
