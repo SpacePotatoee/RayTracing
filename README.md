@@ -2,4 +2,9 @@
 
 # Sponge - OpenGL Edition
 
+<p>
+46 Triangles </br>
+~44 fps (rx 6750xt)
+</p>
+
 This is just a little ray tracing engine I work on in my free time.
