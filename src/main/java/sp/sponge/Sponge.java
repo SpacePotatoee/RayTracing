@@ -79,6 +79,8 @@ public class Sponge {
     }
 
     public void free() {
+        this.mainRenderer.getVulkanCtx().getLogicalDevice().waitIdle();
+        this.textureManager.free(this.mainRenderer.getVulkanCtx());
         this.mainRenderer.close();
     }
 

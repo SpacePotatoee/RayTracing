@@ -440,14 +440,13 @@ public class MainRenderer {
 
             VulkanUtils.imageBarrier(stack, buffer, swapChainImage,
                     VK10.VK_IMAGE_LAYOUT_GENERAL,
-                    KHRSwapchain.VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+                    VK10.VK_IMAGE_LAYOUT_GENERAL,
                     VK13.VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
                     VK13.VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT,
                     VK13.VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK13.VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT,
                     VK13.VK_PIPELINE_STAGE_2_NONE,
                     VK10.VK_IMAGE_ASPECT_COLOR_BIT
             );
-
 
             this.copyToPrevBuffer(buffer, stack, this.interop.getVkFramebuffer(), this.interop.getPrevVkFramebuffer());
         }
@@ -474,7 +473,7 @@ public class MainRenderer {
                                 .aspectMask(dstImageView.getAspectMask())
                                 .baseArrayLayer(dstImageView.getBaseArrayLayer()));
 
-        VK11.vkCmdCopyImage(commandBuffer, srcImage.getVkImage(), VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, dstImage.getVkImage(), VK10.VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, imageCopies);
+        VK11.vkCmdCopyImage(commandBuffer, srcImage.getVkImage(), VK10.VK_IMAGE_LAYOUT_GENERAL, dstImage.getVkImage(), VK10.VK_IMAGE_LAYOUT_GENERAL, imageCopies);
     }
 
     public void updateObjects(VulkanCtx ctx, CommandPool commandPool, Queue queue) {
@@ -561,10 +560,13 @@ public class MainRenderer {
         this.vulkanCtx.getLogicalDevice().waitIdle();
         this.descriptorSets.free(this.vulkanCtx);
 
+        TextureSampler.samplers.forEach(sampler -> sampler.free(this.vulkanCtx));
+        this.interop.free(this.vulkanCtx);
+        this.shaderBindingTable.free(this.vulkanCtx);
+        this.pipeline.free(this.vulkanCtx);
         this.vertexUniformBuffer.free(this.vulkanCtx);
         this.tlas.free(this.vulkanCtx);
         this.blas.free(this.vulkanCtx);
-
         this.vertexMeshBuffers.free();
         this.fences.close(this.vulkanCtx);
         this.commandPool.close();

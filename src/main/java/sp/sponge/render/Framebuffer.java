@@ -88,4 +88,8 @@ public class Framebuffer {
         return new Framebuffer(colorAttachment, width, height);
     }
 
+    public void free() {
+        glDeleteTextures(this.colorAttachment);
+        GL30.glDeleteFramebuffers(this.framebuffer);
+    }
 }

@@ -7,8 +7,11 @@ import sp.sponge.render.vulkan.VulkanCtx;
 import sp.sponge.render.vulkan.VulkanUtils;
 
 import java.nio.LongBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TextureSampler {
+    public static final List<TextureSampler> samplers = new ArrayList<>();
     private final long vkSampler;
 
     private TextureSampler(VulkanCtx ctx, TextureSamplerBuilder builder) {
@@ -37,6 +40,7 @@ public class TextureSampler {
             );
             this.vkSampler = longBuffer.get(0);
         }
+        samplers.add(this);
     }
 
     public long getVkSampler() {

@@ -35,8 +35,12 @@ public class Interop {
             long glCompleteSemaphoreHandle = getSemaphoreWin32Handle(device, vk_glCompleteSemaphore, stack);
 
             //Image
-            this.vkFramebuffer = new Attachment(ctx, width, height, VK10.VK_FORMAT_R8G8B8A8_UNORM, VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK10.VK_IMAGE_USAGE_STORAGE_BIT);
-            this.prevVkFramebuffer = new Attachment(ctx, width, height, VK10.VK_FORMAT_R8G8B8A8_UNORM, VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT);
+            this.vkFramebuffer = new Attachment(
+                    ctx, width, height, VK10.VK_FORMAT_R8G8B8A8_UNORM,
+                    VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK10.VK_IMAGE_USAGE_STORAGE_BIT | VK10.VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+            this.prevVkFramebuffer = new Attachment(
+                    ctx, width, height, VK10.VK_FORMAT_R8G8B8A8_UNORM, 
+                    VK10.VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK10.VK_IMAGE_USAGE_SAMPLED_BIT | VK10.VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
 
             //Create OpenGL stuff
@@ -87,6 +91,15 @@ public class Interop {
         this.readySemaphorePair = new SemaphorePair(new Semaphore(ctx, true), glSemaphore2);
     }
 
+    public void free(VulkanCtx ctx) {
+        this.completeSemaphorePair.free(ctx);
+        this.readySemaphorePair.free(ctx);
+        this.vkFramebuffer.free(ctx);
+        this.prevVkFramebuffer.free(ctx);
+
+        this.glFramebuffer.free();
+    }
+
     private static long getSemaphoreWin32Handle(VkDevice device, Semaphore semaphore, MemoryStack stack) {
         PointerBuffer pointerBuffer = stack.mallocPointer(1);
 
@@ -103,6 +116,10 @@ public class Interop {
         return pointerBuffer.get(0);
     }
 
-    public record SemaphorePair(Semaphore vkSemaphore, int glSemaphore) {}
+    public record SemaphorePair(Semaphore vkSemaphore, int glSemaphore) {
+        public void free(VulkanCtx ctx) {
+            vkSemaphore.free(ctx);
+        }
+    }
 
 }
