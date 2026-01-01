@@ -42,7 +42,7 @@ public class Window implements AutoCloseable {
         }
 
         glfwMakeContextCurrent(this.handle);
-        glfwSwapInterval(1);
+        glfwSwapInterval(0);
         glfwShowWindow(this.handle);
         glfwSetWindowSizeCallback(this.handle, this::resize);
 

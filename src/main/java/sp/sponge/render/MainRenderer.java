@@ -168,14 +168,20 @@ public class MainRenderer {
         this.camera.updateCamera();
         Sponza sponza = new Sponza(false);
         sponza.getMaterial().setColor(1,1,1);
-        SceneManager.addObject(new Sponza(false));
+        SceneManager.addObject(sponza);
+
+        Dragon dragon = new Dragon(false);
+        dragon.getMaterial().setColor(1,1,1);
+        dragon.getTransformations().scale(10);
+        dragon.getTransformations().setPosition(0, 3, -3);
+        SceneManager.addObject(dragon);
 
         Cube lightCube = new Cube(false);
         lightCube.getTransformations().setPosition(0, 20, -3);
         lightCube.getMaterial().setColor(0, 0, 0);
         lightCube.getMaterial().setEmissiveColor(1, 0, 0);
         lightCube.getTransformations().scale(5);
-        lightCube.getMaterial().setEmissiveStrength(10);
+        lightCube.getMaterial().setEmissiveStrength(5);
         SceneManager.addObject(lightCube);
 
         Cube lightCube2 = new Cube(false);
@@ -183,7 +189,7 @@ public class MainRenderer {
         lightCube2.getMaterial().setColor(0, 0, 0);
         lightCube2.getMaterial().setEmissiveColor(0, 1, 0);
         lightCube2.getTransformations().scale(5);
-        lightCube2.getMaterial().setEmissiveStrength(10);
+        lightCube2.getMaterial().setEmissiveStrength(5);
         SceneManager.addObject(lightCube2);
 
         Cube lightCube3 = new Cube(false);
@@ -191,8 +197,9 @@ public class MainRenderer {
         lightCube3.getMaterial().setColor(0, 0, 0);
         lightCube3.getMaterial().setEmissiveColor(0, 0, 1);
         lightCube3.getTransformations().scale(5);
-        lightCube3.getMaterial().setEmissiveStrength(10);
+        lightCube3.getMaterial().setEmissiveStrength(5);
         SceneManager.addObject(lightCube3);
+
 
 //        Square floor = new Square(false);
 //        floor.getTransformations().setPosition(0, -0.5f, 0);
@@ -557,9 +564,7 @@ public class MainRenderer {
     }
 
     public void close() {
-        this.vulkanCtx.getLogicalDevice().waitIdle();
         this.descriptorSets.free(this.vulkanCtx);
-
         TextureSampler.samplers.forEach(sampler -> sampler.free(this.vulkanCtx));
         this.interop.free(this.vulkanCtx);
         this.shaderBindingTable.free(this.vulkanCtx);

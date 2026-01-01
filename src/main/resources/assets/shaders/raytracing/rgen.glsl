@@ -35,8 +35,8 @@ layout(set = 0, binding = 0) uniform CameraInfo {
 const vec3 UP_DIR = vec3(0.0, 1.0, 0.0);
 const float PI = 3.141592;
 
-float TIME = mod(cameraInfo.time * 0.001, 1.0);
-//float TIME = 0.0;
+//float TIME = mod(cameraInfo.time * 0.001, 1.0);
+float TIME = 0.0;
 float angle = (TIME * 360 - 90) * (PI * 0.005555555555556);
 vec3 SUN_DIR = normalize(vec3(-cos(angle), -sin(angle), 0.1));
 vec3 MOON_DIR = vec3(-SUN_DIR.x, -SUN_DIR.y, SUN_DIR.z);
@@ -162,7 +162,9 @@ void main() {
         ray.hitNormal = prevNormal;
 
         //Secondary rays
+        int numOfBounces = 0;
         for (int i = 0; i < 8; i++) {
+            numOfBounces++;
             ray.hit = false;
             ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
             ray.rayDir = getReflectionDir(ray.rayDir, ray.hitNormal, (i+1));
@@ -181,7 +183,8 @@ void main() {
             }
         }
 
-        light = mix(light, texture(prevImage, vec2(texCoord.x, texCoord.y)).rgb, 0.98);
+        light /= numOfBounces;
+        light = mix(light, texture(prevImage, vec2(texCoord.x, texCoord.y)).rgb, 0.97);
 
     } else {
         if (ray.hitMaterial.emissiveColor.a > 0) {
