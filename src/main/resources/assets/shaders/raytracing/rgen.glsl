@@ -145,17 +145,17 @@ void main() {
         vec3 shadowDir = moon ? MOON_DIR : SUN_DIR;
 
         //Shadow rays
-        ray.hit = true;
-        ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
-        ray.rayDir = mix(shadowDir, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
-        if (dot(ray.hitNormal, shadowDir) >= -0.001) {
-            traceRayEXT(accelStruct, gl_RayFlagsTerminateOnFirstHitEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
-        }
-
-
-        if (!ray.hit) {
-            light += throughPut * mix(vec3(moon ? 0.1 : 1.0), getSkyColor(ray.rayDir), 0.1);
-        }
+//        ray.hit = true;
+//        ray.rayOrigin = ray.rayPos + ray.hitNormal * 0.001;
+//        ray.rayDir = mix(shadowDir, getRandVec3((texCoord+1) + 0.2345 + cameraInfo.time), 0.01);
+//        if (dot(ray.hitNormal, shadowDir) >= -0.001) {
+//            traceRayEXT(accelStruct, gl_RayFlagsTerminateOnFirstHitEXT, 0xFFu, 0, 0, 0, ray.rayOrigin, 0.001, ray.rayDir, 10000, 0);
+//        }
+//
+//
+//        if (!ray.hit) {
+//            light += throughPut * mix(vec3(moon ? 0.1 : 1.0), getSkyColor(ray.rayDir), 0.1);
+//        }
 
         ray.hit = prevHit;
         ray.rayPos = prevPos;

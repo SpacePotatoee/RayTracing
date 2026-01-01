@@ -179,7 +179,7 @@ public class MainRenderer {
         Cube lightCube = new Cube(false);
         lightCube.getTransformations().setPosition(0, 20, -3);
         lightCube.getMaterial().setColor(0, 0, 0);
-        lightCube.getMaterial().setEmissiveColor(1, 0, 0);
+        lightCube.getMaterial().setEmissiveColor(0, 1, 0);
         lightCube.getTransformations().scale(5);
         lightCube.getMaterial().setEmissiveStrength(5);
         SceneManager.addObject(lightCube);
@@ -187,7 +187,7 @@ public class MainRenderer {
         Cube lightCube2 = new Cube(false);
         lightCube2.getTransformations().setPosition(20, 20, -3);
         lightCube2.getMaterial().setColor(0, 0, 0);
-        lightCube2.getMaterial().setEmissiveColor(0, 1, 0);
+        lightCube2.getMaterial().setEmissiveColor(1, 0, 0);
         lightCube2.getTransformations().scale(5);
         lightCube2.getMaterial().setEmissiveStrength(5);
         SceneManager.addObject(lightCube2);
